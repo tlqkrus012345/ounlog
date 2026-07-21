@@ -1,10 +1,15 @@
 package saju.member;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 import java.time.Instant;
 
 @Entity
+@Getter
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,4 +30,21 @@ public class Member {
 
     @Column(nullable = false)
     private Instant updatedAt;
+
+    private Member(String email, String passwordHash, MemberStatus status, Instant time) {
+        this.email = email;
+        this.passwordHash = passwordHash;
+        this.status = status;
+        this.createdAt = time;
+        this.updatedAt = time;
+    }
+
+    public static Member signup(String email, String passwordHash) {
+        return new Member(
+                email,
+                passwordHash,
+                MemberStatus.ACTIVE,
+                Instant.now()
+        );
+    }
 }
