@@ -3,18 +3,15 @@ package saju;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.annotation.Import;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.mysql.MySQLContainer;
+import saju.config.MysqlTestContainerConfig;
 
-@Testcontainers
+@Import(MysqlTestContainerConfig.class)
 @SpringBootTest
 class SajuApplicationTests {
-
-    @Container
-    @ServiceConnection
-    static final MySQLContainer mysql = new MySQLContainer("mysql:8.4.10")
-            .withDatabaseName("saju");
 
     @Test
     void contextLoads() {
