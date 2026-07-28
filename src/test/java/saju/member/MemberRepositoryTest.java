@@ -27,6 +27,6 @@ class MemberRepositoryTest {
         Member savedMember = memberRepository.save(member);
 
         assertThat(savedMember.getMemberId()).isNotNull();
-        assertThat(savedMember.getEmail()).as("email@test.com");
+        assertThat(savedMember.getEmail()).isEqualTo("email@test.com");
     }
 }
