@@ -17,8 +17,8 @@ public class MemberController {
     private final MemberService memberService;
 
     @PostMapping("/signup")
-    public ResponseEntity<MemberSignupResult> signup(@Valid @RequestBody MemberSignupRequest request) {
+    public ResponseEntity<MemberSignupResponse> signup(@Valid @RequestBody MemberSignupRequest request) {
         MemberSignupResult result = memberService.signup(request.toCommand());
-        return ResponseEntity.status(HttpStatus.CREATED).body(result);
+        return ResponseEntity.status(HttpStatus.CREATED).body(MemberSignupResponse.from(result));
     }
 }
