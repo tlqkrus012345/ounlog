@@ -1,5 +1,6 @@
 package saju.member;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,10 @@ public class MemberController {
 
     private final MemberService memberService;
 
+    @Operation(
+            summary = "회원 가입",
+            description = "이메일과 비밀번호를 통해 회원 가입."
+    )
     @PostMapping("/signup")
     public ResponseEntity<MemberSignupResponse> signup(@Valid @RequestBody MemberSignupRequest request) {
         MemberSignupResult result = memberService.signup(request.toCommand());
