@@ -26,3 +26,13 @@ Thumbs.db
 
 # Local Environment Variables
 .env
+.env.*
+!.env.example
+
+# Node.js / Frontend
+node_modules/
+dist/
+coverage/
+.vite/
+.next/
+*.tsbuildinfo
