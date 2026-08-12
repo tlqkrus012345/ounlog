@@ -8,12 +8,9 @@
 saju/
 ├── backend/       # Java 21, Spring Boot REST API
 ├── frontend/      # Frontend application
-├── infra/         # Local infrastructure configuration
 ├── .github/       # CI workflows
 └── README.md
 ```
-
-backend와 frontend는 각각 독립적으로 build, test, deploy할 수 있는 application으로 관리합니다.
 
 ## Backend
 
@@ -40,10 +37,6 @@ docker compose --env-file .env -f infra/compose.yml up -d
 cd backend
 ./gradlew bootRun --args='--spring.profiles.active=dev'
 ```
-
-## Frontend
-
-Frontend application은 `frontend/` 디렉터리에서 독립적으로 관리합니다. 현재는 기술 스택을 선택하고 scaffold할 수 있도록 경계만 생성한 상태입니다.
 
 ## Commit convention
 
