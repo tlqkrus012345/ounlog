@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import saju.config.MysqlTestContainerConfig;
+import saju.member.entity.Member;
+import saju.member.repository.MemberRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

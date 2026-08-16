@@ -7,6 +7,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import saju.config.MysqlTestContainerConfig;
+import saju.member.entity.Member;
+import saju.member.repository.MemberRepository;
+import saju.member.service.MemberService;
+import saju.member.service.MemberSignupCommand;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

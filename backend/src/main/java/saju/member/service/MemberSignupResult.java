@@ -1,4 +1,6 @@
-package saju.member;
+package saju.member.service;
+
+import saju.member.entity.Member;
 
 public record MemberSignupResult(String email) {
 

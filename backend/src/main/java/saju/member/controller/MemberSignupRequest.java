@@ -1,8 +1,9 @@
-package saju.member;
+package saju.member.controller;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import saju.member.service.MemberSignupCommand;
 
 public record MemberSignupRequest(
         @NotBlank(message = "이메일은 필수입니다.")

@@ -1,4 +1,4 @@
-package saju.member;
+package saju.member.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

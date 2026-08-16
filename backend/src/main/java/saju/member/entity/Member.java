@@ -1,4 +1,4 @@
-package saju.member;
+package saju.member.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

@@ -1,4 +1,4 @@
-package saju.member;
+package saju.member.service;
 
 public record MemberSignupCommand(String email, String password) {
 }

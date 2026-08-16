@@ -7,6 +7,10 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import saju.member.controller.MemberController;
+import saju.member.service.MemberService;
+import saju.member.service.MemberSignupCommand;
+import saju.member.service.MemberSignupResult;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;

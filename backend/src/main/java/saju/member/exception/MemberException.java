@@ -1,4 +1,4 @@
-package saju.member;
+package saju.member.exception;
 
 import saju.common.exception.BusinessException;
 

@@ -1,9 +1,13 @@
-package saju.member;
+package saju.member.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import saju.member.entity.Member;
+import saju.member.exception.MemberErrorCode;
+import saju.member.exception.MemberException;
+import saju.member.repository.MemberRepository;
 
 @Service
 @Transactional(readOnly = true)

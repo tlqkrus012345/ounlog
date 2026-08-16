@@ -1,4 +1,4 @@
-package saju.member;
+package saju.member.entity;
 
 public enum MemberStatus {
     ACTIVE, WITHDRAWN

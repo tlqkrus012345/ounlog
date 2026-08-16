@@ -7,6 +7,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import saju.member.entity.Member;
+import saju.member.exception.MemberException;
+import saju.member.repository.MemberRepository;
+import saju.member.service.MemberService;
+import saju.member.service.MemberSignupCommand;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;

@@ -1,6 +1,7 @@
-package saju.member;
+package saju.member.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import saju.member.entity.Member;
 
 import java.util.Optional;
 

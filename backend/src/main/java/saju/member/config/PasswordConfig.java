@@ -1,4 +1,4 @@
-package saju.member;
+package saju.member.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
