@@ -16,7 +16,7 @@ public class MemberService {
     @Transactional
     public MemberSignupResult signup(MemberSignupCommand command) {
         if (memberRepository.existsByEmail(command.email())) {
-            throw new MemberException("이미 가입된 이메일입니다.");
+            throw new MemberException(MemberErrorCode.MEMBER_EMAIL_DUPLICATED);
         }
 
         final String encodedPassword = passwordEncoder.encode(command.password());

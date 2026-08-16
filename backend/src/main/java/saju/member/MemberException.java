@@ -1,8 +1,10 @@
 package saju.member;
 
-public class MemberException extends RuntimeException {
+import saju.common.exception.BusinessException;
 
-    public MemberException(String message) {
-        super(message);
+public class MemberException extends BusinessException {
+
+    public MemberException(MemberErrorCode errorCode) {
+        super(errorCode);
     }
 }

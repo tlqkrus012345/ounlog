@@ -10,5 +10,5 @@ public record ApiErrorResponse(
         String code,
         String message,
         String path,
-        List<FieldErrorResponse>errors
+        List<FieldErrorResponse> errors
 ) {}
