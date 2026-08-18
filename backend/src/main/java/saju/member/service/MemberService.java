@@ -1,6 +1,7 @@
 package saju.member.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,18 +20,29 @@ public class MemberService {
 
     @Transactional
     public MemberSignupResult signup(MemberSignupCommand command) {
-        if (memberRepository.existsByEmail(command.email())) {
-            throw new MemberException(MemberErrorCode.MEMBER_EMAIL_DUPLICATED);
-        }
-
-        final String encodedPassword = passwordEncoder.encode(command.password());
+        validateEmailNotDuplicated(command.email());
 
         Member member = Member.signup(
                 command.email(),
-                encodedPassword
+                passwordEncoder.encode(command.password())
         );
 
-        Member savedMember = memberRepository.save(member);
+        Member savedMember = save(member);
+
         return MemberSignupResult.from(savedMember);
+    }
+
+    private void validateEmailNotDuplicated(String email) {
+        if (memberRepository.existsByEmail(email)) {
+            throw new MemberException(MemberErrorCode.MEMBER_EMAIL_DUPLICATED);
+        }
+    }
+
+    private Member save(Member member) {
+        try {
+            return memberRepository.saveAndFlush(member);
+        } catch (DataIntegrityViolationException e) {
+            throw new MemberException(MemberErrorCode.MEMBER_EMAIL_DUPLICATED);
+        }
     }
 }
