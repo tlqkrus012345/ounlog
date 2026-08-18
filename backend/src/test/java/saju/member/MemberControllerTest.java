@@ -8,16 +8,18 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import saju.member.controller.MemberController;
+import saju.member.exception.MemberErrorCode;
+import saju.member.exception.MemberException;
 import saju.member.service.MemberService;
 import saju.member.service.MemberSignupCommand;
 import saju.member.service.MemberSignupResult;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(MemberController.class)
 class MemberControllerTest {
@@ -32,76 +34,127 @@ class MemberControllerTest {
     @Test
     void signup() throws Exception {
         MemberSignupCommand command =
-                new MemberSignupCommand("member@example.com", "password123!");
+                new MemberSignupCommand("test@email.com", "password123!");
         given(memberService.signup(command))
-                .willReturn(new MemberSignupResult("member@example.com"));
+                .willReturn(new MemberSignupResult("test@email.com"));
 
         mockMvc.perform(post("/v1/members/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "email": "member@example.com",
+                                  "email": "test@email.com",
                                   "password": "password123!"
                                 }
                                 """))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.email").value("member@example.com"))
+                .andExpect(jsonPath("$.email").value("test@email.com"))
                 .andExpect(jsonPath("$.password").doesNotExist())
                 .andExpect(jsonPath("$.passwordHash").doesNotExist());
 
         then(memberService).should().signup(command);
     }
 
+    @DisplayName("이메일이 비어있으면 400 응답을 반환한다.")
+    @Test
+    void signupWithBlankEmail() throws Exception {
+        mockMvc.perform(post("/v1/members/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "",
+                                  "password": "password123!"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"))
+                .andExpect(jsonPath("$.message").value("요청 값이 올바르지 않습니다."))
+                .andExpect(jsonPath("$.path").value("/v1/members/signup"))
+                .andExpect(jsonPath("$.errors[0].field").value("email"))
+                .andExpect(jsonPath("$.errors[0].code").value("NotBlank"))
+                .andExpect(jsonPath("$.errors[0].message").value("이메일은 필수입니다."));
+
+        then(memberService).shouldHaveNoInteractions();
+    }
+
     @DisplayName("이메일 형식이 올바르지 않으면 400 응답을 반환한다.")
     @Test
     void signupWithInvalidEmail() throws Exception {
-        assertBadRequest("""
-                {
-                  "email": "invalid-email",
-                  "password": "password123!"
-                }
-                """);
-    }
-
-    @DisplayName("이메일이 비어 있으면 400 응답을 반환한다.")
-    @Test
-    void signupWithBlankEmail() throws Exception {
-        assertBadRequest("""
-                {
-                  "email": " ",
-                  "password": "password123!"
-                }
-                """);
-    }
-
-    @DisplayName("비밀번호가 비어 있으면 400 응답을 반환한다.")
-    @Test
-    void signupWithBlankPassword() throws Exception {
-        assertBadRequest("""
-                {
-                  "email": "member@example.com",
-                  "password": " "
-                }
-                """);
-    }
-
-    @DisplayName("요청 본문이 잘못된 JSON이면 400 응답을 반환한다.")
-    @Test
-    void signupWithMalformedJson() throws Exception {
-        assertBadRequest("""
-                {
-                  "email": "member@example.com",
-                }
-                """);
-    }
-
-    private void assertBadRequest(String content) throws Exception {
         mockMvc.perform(post("/v1/members/signup")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(content))
-                .andExpect(status().isBadRequest());
+                        .content("""
+                                {
+                                  "email": "invalid-email",
+                                  "password": "password"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"))
+                .andExpect(jsonPath("$.message").value("요청 값이 올바르지 않습니다."))
+                .andExpect(jsonPath("$.path").value("/v1/members/signup"))
+                .andExpect(jsonPath("$.errors[0].field").value("email"))
+                .andExpect(jsonPath("$.errors[0].code").value("Email"))
+                .andExpect(jsonPath("$.errors[0].message").value("올바른 이메일 형식이어야 합니다."));
 
         then(memberService).shouldHaveNoInteractions();
+    }
+
+    @DisplayName("이미 가입된 이메일이면 409 오류 응답을 반환한다.")
+    @Test
+    void signupWithDuplicatedEmail() throws Exception {
+        MemberSignupCommand command =
+                new MemberSignupCommand("test@email.com", "password123!");
+        given(memberService.signup(command))
+                .willThrow(new MemberException(MemberErrorCode.MEMBER_EMAIL_DUPLICATED));
+
+        mockMvc.perform(post("/v1/members/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "test@email.com",
+                                  "password": "password123!"
+                                }
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.code").value("MEMBER_EMAIL_DUPLICATED"))
+                .andExpect(jsonPath("$.message").value("이미 가입된 이메일입니다."))
+                .andExpect(jsonPath("$.path").value("/v1/members/signup"))
+                .andExpect(jsonPath("$.errors").doesNotExist());
+
+        then(memberService).should().signup(command);
+    }
+
+    @DisplayName("예상하지 못한 예외가 발생하면 내부 정보 없이 500 오류 응답을 반환한다.")
+    @Test
+    void signupWithUnexpectedException() throws Exception {
+        MemberSignupCommand command =
+                new MemberSignupCommand("test@email.com", "password123!");
+        given(memberService.signup(command))
+                .willThrow(new IllegalStateException("sensitive internal message"));
+
+        mockMvc.perform(post("/v1/members/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "test@email.com",
+                                  "password": "password123!"
+                                }
+                                """))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.code").value("INTERNAL_SERVER_ERROR"))
+                .andExpect(jsonPath("$.message").value("서버 오류가 발생했습니다."))
+                .andExpect(jsonPath("$.path").value("/v1/members/signup"))
+                .andExpect(jsonPath("$.errors").doesNotExist())
+                .andExpect(content().string(not(containsString("sensitive internal message"))));
+
+        then(memberService).should().signup(command);
     }
 }
