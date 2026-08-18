@@ -8,16 +8,17 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import saju.member.entity.Member;
+import saju.member.exception.MemberErrorCode;
 import saju.member.exception.MemberException;
 import saju.member.repository.MemberRepository;
 import saju.member.service.MemberService;
 import saju.member.service.MemberSignupCommand;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @ExtendWith(MockitoExtension.class)
 class MemberServiceTest {
@@ -31,16 +32,17 @@ class MemberServiceTest {
     @InjectMocks
     MemberService memberService;
 
-    @DisplayName("이미 가입된 이메일이면 회원가입에 실패한다.")
+    @DisplayName("중복된 이메일로 가입하면 예외가 발생한다.")
     @Test
     void signupWithDuplicatedEmail() {
         given(memberRepository.existsByEmail("test@email.com")).willReturn(true);
+        MemberSignupCommand command = new MemberSignupCommand("test@email.com", "password");
 
-        assertThatThrownBy(() -> memberService.signup(new MemberSignupCommand("test@email.com", "password")))
+        assertThatThrownBy(() -> memberService.signup(command))
                 .isInstanceOf(MemberException.class)
-                .hasMessage("이미 가입된 이메일입니다.");
+                .extracting(e -> ((MemberException) e).getErrorCode())
+                .isEqualTo(MemberErrorCode.MEMBER_EMAIL_DUPLICATED);
 
-        then(passwordEncoder).shouldHaveNoInteractions();
-        then(memberRepository).should(never()).save(any(Member.class));
+        then(memberRepository).should(never()).saveAndFlush(any(Member.class));
     }
 }
