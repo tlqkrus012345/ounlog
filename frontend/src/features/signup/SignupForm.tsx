@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { signup, SignupApiError } from './api'
+import { signup, SignupApiError, SignupTimeoutError } from './api'
 import type { FieldError, SignupRequest } from './types'
 import './SignupForm.css'
 
@@ -50,7 +50,9 @@ export function SignupForm() {
       setEmail('')
       setPassword('')
     } catch (error) {
-      if (error instanceof SignupApiError) {
+      if (error instanceof SignupTimeoutError) {
+        setFormError('요청 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.')
+      } else if (error instanceof SignupApiError) {
         const nextFieldErrors = convertFieldErrors(error.fieldErrors)
 
         setFieldErrors(nextFieldErrors)
@@ -59,9 +61,7 @@ export function SignupForm() {
           setFormError(error.message)
         }
       } else {
-        setFormError(
-          '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.',
-        )
+        setFormError('서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.')
       }
     } finally {
       setIsSubmitting(false)
@@ -103,9 +103,7 @@ export function SignupForm() {
             autoComplete="email"
             placeholder="example@email.com"
             aria-invalid={fieldErrors.email !== undefined}
-            aria-describedby={
-              fieldErrors.email ? 'email-error' : undefined
-            }
+            aria-describedby={fieldErrors.email ? 'email-error' : undefined}
             required
           />
 
@@ -129,9 +127,7 @@ export function SignupForm() {
             maxLength={16}
             aria-invalid={fieldErrors.password !== undefined}
             aria-describedby={
-              fieldErrors.password
-                ? 'password-error'
-                : 'password-hint'
+              fieldErrors.password ? 'password-error' : 'password-hint'
             }
             required
           />
