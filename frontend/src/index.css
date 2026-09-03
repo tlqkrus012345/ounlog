@@ -145,3 +145,144 @@ input {
 .entry__login-btn:hover {
   color: #6e56cf;
 }
+
+.saju {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+
+  padding: 48px 24px;
+  background-color: #f8f8fb;
+}
+
+.saju__content {
+  width: 100%;
+  max-width: 520px;
+}
+
+.saju__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 64px;
+}
+
+.saju__back {
+  border: 0;
+  background: none;
+
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.saju__step {
+  font-size: 14px;
+  color: #71717a;
+}
+
+.saju__header {
+  margin-bottom: 48px;
+}
+
+.saju__header h1 {
+  margin: 0 0 12px;
+
+  font-size: 32px;
+  color: #18181b;
+}
+
+.saju__header p {
+  margin: 0;
+
+  font-size: 16px;
+  line-height: 1.6;
+  color: #71717a;
+}
+
+.saju__form {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.saju__field {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.saju__field label,
+.saju__label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #18181b;
+}
+
+.saju__field input {
+  width: 100%;
+  height: 52px;
+
+  padding: 0 16px;
+
+  border: 1px solid #e8e8ee;
+  border-radius: 12px;
+
+  background-color: #ffffff;
+
+  font-size: 16px;
+}
+
+.calendar-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  padding: 4px;
+
+  border-radius: 12px;
+  background-color: #eeeef3;
+}
+
+.calendar-selector__button {
+  height: 44px;
+
+  border: 0;
+  border-radius: 9px;
+
+  background: transparent;
+
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.calendar-selector__button--selected {
+  background-color: #ffffff;
+
+  font-weight: 600;
+  color: #5147e5;
+}
+
+.saju__next {
+  width: 100%;
+  height: 56px;
+
+  margin-top: 48px;
+
+  border: 0;
+  border-radius: 16px;
+
+  background-color: #5147e5;
+  color: #ffffff;
+
+  font-size: 16px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.saju__next:disabled {
+  background-color: #e4e4e7;
+  color: #a1a1aa;
+
+  cursor: not-allowed;
+}
