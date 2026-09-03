@@ -3,6 +3,7 @@
 # =============================================================================
 
 # Gradle local cache and build outputs
+.gradle/
 /backend/.gradle/
 /backend/build/
 
