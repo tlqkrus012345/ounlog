@@ -41,11 +41,12 @@ cd backend
 ## Commit convention
 
 ```text
-feat: 기능 추가
-fix: 버그 수정
+feat: 새로운 기능 추가
+fix: 기존 기능의 결함 수정
 docs: 문서 수정
-refactor: 리팩터링
+refactor: 내부 구조 개선
 test: 테스트 추가/수정
 chore: 빌드, 설정, 기타 작업
+style: 줄바꿈/들여쓰기 수정
 ci: CI 설정
 ```
