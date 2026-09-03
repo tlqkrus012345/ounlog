@@ -96,7 +96,9 @@ input {
   padding: 24px 20px;
   text-align: left;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .entry-card:hover {
@@ -133,7 +135,7 @@ input {
 .entry__login-btn {
   background: transparent;
   border: none;
-  color: #8A73FF; /* 포인트 바이올렛 컬러 */
+  color: #8a73ff; /* 포인트 바이올렛 컬러 */
   font-weight: 600;
   cursor: pointer;
   padding: 0;
@@ -141,5 +143,5 @@ input {
 }
 
 .entry__login-btn:hover {
-  color: #6E56CF;
+  color: #6e56cf;
 }
