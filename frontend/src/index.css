@@ -286,3 +286,21 @@ input {
 
   cursor: not-allowed;
 }
+
+.saju__unknown-time {
+  align-self: flex-start;
+
+  padding: 0;
+
+  border: 0;
+  background: none;
+
+  font-size: 14px;
+  color: #71717a;
+
+  cursor: pointer;
+}
+
+.saju__unknown-time:hover {
+  color: #5147e5;
+}
