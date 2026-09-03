@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 
 type CalendarType = 'SOLAR' | 'LUNAR'
 
-function SajuPage() {
+function BirthDatePage() {
   const navigate = useNavigate()
 
   const [birthDate, setBirthDate] = useState('')
@@ -98,4 +98,4 @@ function SajuPage() {
   )
 }
 
-export default SajuPage
+export default BirthDatePage
