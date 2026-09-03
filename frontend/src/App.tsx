@@ -11,6 +11,7 @@ function App() {
       <Route path="/entry" element={<EntryPage />} />
       <Route path="/saju" element={<BirthDatePage />} />
       <Route path="/saju/birth-time" element={<BirthTimePage />} />
+      <Route path="/saju/confirm" element={<ConfirmPage />} />
     </Routes>
   )
 }

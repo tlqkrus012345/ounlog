@@ -304,3 +304,36 @@ input {
 .saju__unknown-time:hover {
   color: #5147e5;
 }
+
+.saju-confirm {
+  display: flex;
+  flex-direction: column;
+
+  border: 1px solid #e8e8ee;
+  border-radius: 16px;
+  background-color: #ffffff;
+
+  overflow: hidden;
+}
+
+.saju-confirm__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 20px;
+}
+
+.saju-confirm__row + .saju-confirm__row {
+  border-top: 1px solid #e8e8ee;
+}
+
+.saju-confirm__row span {
+  font-size: 14px;
+  color: #71717a;
+}
+
+.saju-confirm__row strong {
+  font-size: 15px;
+  color: #18181b;
+}
