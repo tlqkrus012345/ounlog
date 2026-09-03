@@ -1,0 +1,147 @@
+:root {
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+
+  color: #111827;
+  background: #f9fafb;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  min-width: 320px;
+}
+
+button,
+input {
+  box-sizing: border-box;
+}
+
+.splash {
+  min-height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-color: #f8f8fb;
+}
+
+.splash__title {
+  margin: 0;
+
+  font-size: 32px;
+  font-weight: 600;
+  color: #18181b;
+}
+
+/* 화면 전체 중앙 정렬 */
+.entry {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f8f9fa; /* 프로젝트 배경색에 맞게 변경 (다크모드인 경우 #12131C) */
+  padding: 20px;
+}
+
+/* 컨텐츠 최대 너비 제한 (PC에서 휑해지는 것 방지) */
+.entry__container {
+  width: 100%;
+  max-width: 560px;
+}
+
+/* 헤더 스타일 */
+.entry__header {
+  margin-bottom: 28px;
+  text-align: left;
+}
+
+.entry__header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111111;
+  margin-bottom: 8px;
+}
+
+.entry__header p {
+  font-size: 14px;
+  color: #666666;
+}
+
+/* 카드 영역 */
+.entry__options {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.entry-card {
+  flex: 1;
+  background: #ffffff;
+  border: 1px solid #e9ecef;
+  border-radius: 16px;
+  padding: 24px 20px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.entry-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+.entry-card h2 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #111111;
+}
+
+.entry-card p {
+  font-size: 13px;
+  color: #666666;
+  line-height: 1.4;
+}
+
+/* 하단 로그인 링크 정렬 */
+.entry__footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.entry__footer-text {
+  color: #888888;
+}
+
+.entry__login-btn {
+  background: transparent;
+  border: none;
+  color: #8a73ff; /* 포인트 바이올렛 컬러 */
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.entry__login-btn:hover {
+  color: #6e56cf;
+}
