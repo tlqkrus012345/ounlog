@@ -1,0 +1,93 @@
+.entry {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background-color: #f8f9fa;
+}
+
+.entry__container {
+  width: 100%;
+  max-width: 560px;
+}
+
+.entry__header {
+  margin-bottom: 28px;
+  text-align: left;
+}
+
+.entry__header h1 {
+  margin-bottom: 8px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #111111;
+}
+
+.entry__header p {
+  font-size: 14px;
+  color: #666666;
+}
+
+.entry__options {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.entry-card {
+  flex: 1;
+  padding: 24px 20px;
+  border: 1px solid #e9ecef;
+  border-radius: 16px;
+  background: #ffffff;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.entry-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+.entry-card h2 {
+  margin-bottom: 6px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #111111;
+}
+
+.entry-card p {
+  font-size: 13px;
+  line-height: 1.4;
+  color: #666666;
+}
+
+.entry__footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.entry__footer-text {
+  color: #888888;
+}
+
+.entry__login-btn {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #8a73ff;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.entry__login-btn:hover {
+  color: #6e56cf;
+}
