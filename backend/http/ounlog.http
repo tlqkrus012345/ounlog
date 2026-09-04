@@ -1,0 +1,9 @@
+### preview
+POST http://localhost:8080/v1/ounlog/previews
+Content-Type: application/json
+
+{
+  "birthDate": "2026-08-21",
+  "birthTime": "14:32",
+  "calendarType": "SOLAR"
+}
