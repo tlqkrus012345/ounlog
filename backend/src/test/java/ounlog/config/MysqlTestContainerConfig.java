@@ -11,7 +11,6 @@ public class MysqlTestContainerConfig {
     @Bean
     @ServiceConnection
     MySQLContainer mysqlContainer() {
-        return new MySQLContainer("mysql:8.4.10")
-                .withDatabaseName("ounlog");
+        return new MySQLContainer("mysql:8.4.10").withDatabaseName("ounlog");
     }
 }

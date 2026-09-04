@@ -22,10 +22,7 @@ public class MemberService {
     public MemberSignupResult signup(MemberSignupCommand command) {
         validateEmailNotDuplicated(command.email());
 
-        Member member = Member.signup(
-                command.email(),
-                passwordEncoder.encode(command.password())
-        );
+        Member member = Member.signup(command.email(), passwordEncoder.encode(command.password()));
 
         Member savedMember = save(member);
 

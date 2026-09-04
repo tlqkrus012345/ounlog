@@ -1,5 +1,11 @@
 package ounlog.member;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,13 +21,6 @@ import ounlog.member.exception.MemberException;
 import ounlog.member.repository.MemberRepository;
 import ounlog.member.service.MemberService;
 import ounlog.member.service.MemberSignupCommand;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @Import(MysqlTestContainerConfig.class)
 @SpringBootTest
@@ -50,11 +49,11 @@ class MemberIntegrationTest {
     void signup() {
         memberService.signup(new MemberSignupCommand("test@email.com", "password"));
 
-        Member member = memberRepository.findByEmail("test@email.com")
-                .orElseThrow();
+        Member member = memberRepository.findByEmail("test@email.com").orElseThrow();
 
         assertThat(member.getPasswordHash()).isNotEqualTo("password");
-        assertThat(passwordEncoder.matches("password", member.getPasswordHash())).isTrue();
+        assertThat(passwordEncoder.matches("password", member.getPasswordHash()))
+                .isTrue();
     }
 
     @DisplayName("동시에 같은 이메일로 가입하면 한 건만 성공한다.")

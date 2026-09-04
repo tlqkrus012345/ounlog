@@ -1,5 +1,8 @@
 package ounlog.member;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,9 +12,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import ounlog.config.MysqlTestContainerConfig;
 import ounlog.member.entity.Member;
 import ounlog.member.repository.MemberRepository;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Import(MysqlTestContainerConfig.class)
 @DataJpaTest
@@ -23,10 +23,7 @@ class MemberRepositoryTest {
     @DisplayName("회원 정보가 정상적으로 DB에 저장이 된다.")
     @Test
     void signup() {
-        Member member = Member.signup(
-                "test@email.com",
-                "password"
-        );
+        Member member = Member.signup("test@email.com", "password");
 
         Member savedMember = memberRepository.save(member);
 

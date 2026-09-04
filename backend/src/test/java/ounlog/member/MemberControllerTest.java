@@ -1,5 +1,12 @@
 package ounlog.member;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,13 +21,6 @@ import ounlog.member.service.MemberService;
 import ounlog.member.service.MemberSignupCommand;
 import ounlog.member.service.MemberSignupResult;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 @WebMvcTest(MemberController.class)
 class MemberControllerTest {
 
@@ -33,10 +33,8 @@ class MemberControllerTest {
     @DisplayName("유효한 요청이면 회원가입 후 201 응답을 반환한다.")
     @Test
     void signup() throws Exception {
-        MemberSignupCommand command =
-                new MemberSignupCommand("test@email.com", "password123!");
-        given(memberService.signup(command))
-                .willReturn(new MemberSignupResult("test@email.com"));
+        MemberSignupCommand command = new MemberSignupCommand("test@email.com", "password123!");
+        given(memberService.signup(command)).willReturn(new MemberSignupResult("test@email.com"));
 
         mockMvc.perform(post("/v1/members/signup")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -106,10 +104,8 @@ class MemberControllerTest {
     @DisplayName("이미 가입된 이메일이면 409 오류 응답을 반환한다.")
     @Test
     void signupWithDuplicatedEmail() throws Exception {
-        MemberSignupCommand command =
-                new MemberSignupCommand("test@email.com", "password123!");
-        given(memberService.signup(command))
-                .willThrow(new MemberException(MemberErrorCode.MEMBER_EMAIL_DUPLICATED));
+        MemberSignupCommand command = new MemberSignupCommand("test@email.com", "password123!");
+        given(memberService.signup(command)).willThrow(new MemberException(MemberErrorCode.MEMBER_EMAIL_DUPLICATED));
 
         mockMvc.perform(post("/v1/members/signup")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -133,10 +129,8 @@ class MemberControllerTest {
     @DisplayName("예상하지 못한 예외가 발생하면 내부 정보 없이 500 오류 응답을 반환한다.")
     @Test
     void signupWithUnexpectedException() throws Exception {
-        MemberSignupCommand command =
-                new MemberSignupCommand("test@email.com", "password123!");
-        given(memberService.signup(command))
-                .willThrow(new IllegalStateException("sensitive internal message"));
+        MemberSignupCommand command = new MemberSignupCommand("test@email.com", "password123!");
+        given(memberService.signup(command)).willThrow(new IllegalStateException("sensitive internal message"));
 
         mockMvc.perform(post("/v1/members/signup")
                         .contentType(MediaType.APPLICATION_JSON)

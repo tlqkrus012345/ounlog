@@ -1,18 +1,18 @@
 package ounlog.member.entity;
 
 import jakarta.persistence.*;
+import java.time.Instant;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
-import java.time.Instant;
 
 @Entity
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long memberId;
 
     @Column(nullable = false, length = 255, unique = true)
@@ -40,11 +40,6 @@ public class Member {
     }
 
     public static Member signup(String email, String passwordHash) {
-        return new Member(
-                email,
-                passwordHash,
-                MemberStatus.ACTIVE,
-                Instant.now()
-        );
+        return new Member(email, passwordHash, MemberStatus.ACTIVE, Instant.now());
     }
 }
