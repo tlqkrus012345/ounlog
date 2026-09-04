@@ -1,5 +1,5 @@
 ### preview
-POST http://localhost:8080/v1/ounlog/previews
+POST http://localhost:8080/v1/saju/previews
 Content-Type: application/json
 
 {
