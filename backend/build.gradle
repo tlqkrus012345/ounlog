@@ -2,11 +2,12 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '4.1.0'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'com.diffplug.spotless' version '8.10.1'
 }
 
-group = 'saju'
+group = 'ounlog'
 version = '0.0.1-SNAPSHOT'
-description = 'saju'
+description = 'ounlog'
 
 java {
     toolchain {
@@ -49,4 +50,16 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
     systemProperty 'spring.profiles.active', 'test'
+}
+
+tasks.register('format') {
+    dependsOn 'spotlessApply'
+}
+
+spotless {
+    java {
+        palantirJavaFormat()
+        removeUnusedImports()
+        trimTrailingWhitespace()
+    }
 }

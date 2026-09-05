@@ -3,8 +3,8 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/saju
-    username: saju
+    url: jdbc:mysql://localhost:3306/ounlog
+    username: ounlog
     password: ${MYSQL_PASSWORD}
   jpa:
     properties:

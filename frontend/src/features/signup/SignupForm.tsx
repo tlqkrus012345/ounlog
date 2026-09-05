@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
+import type { FieldError } from '../../shared/api/errors'
 import { signup, SignupApiError, SignupTimeoutError } from './api'
-import type { FieldError, SignupRequest } from './types'
+import type { SignupRequest } from './types'
 import './SignupForm.css'
 
 type SignupField = keyof SignupRequest
