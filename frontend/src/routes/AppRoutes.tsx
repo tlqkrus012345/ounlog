@@ -4,6 +4,7 @@ import BirthDatePage from '../pages/saju/BirthDatePage'
 import BirthTimePage from '../pages/saju/BirthTimePage'
 import ConfirmPage from '../pages/saju/ConfirmPage'
 import SplashPage from '../pages/splash/SplashPage'
+import SajuPreviewPage from '../pages/saju/SajuPreviewPage'
 
 export function AppRoutes() {
   return (
@@ -13,6 +14,7 @@ export function AppRoutes() {
       <Route path="/saju" element={<BirthDatePage />} />
       <Route path="/saju/birth-time" element={<BirthTimePage />} />
       <Route path="/saju/confirm" element={<ConfirmPage />} />
+      <Route path="/saju/preview" element={<SajuPreviewPage />} />
     </Routes>
   )
 }

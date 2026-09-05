@@ -89,3 +89,12 @@
   font-weight: 600;
   cursor: pointer;
 }
+
+.saju__error {
+  margin: 16px 0 0;
+
+  font-size: 14px;
+  line-height: 1.5;
+
+  color: #dc2626;
+}

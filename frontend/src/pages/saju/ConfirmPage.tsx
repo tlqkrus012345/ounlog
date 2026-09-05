@@ -1,12 +1,12 @@
+import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { createSajuPreview } from '../../features/saju/api'
+import { toSajuPreviewRequest } from '../../features/saju/mapper'
+import type {
+  SajuFormState,
+  SajuPreviewResponse,
+} from '../../features/saju/types'
 import './ConfirmPage.css'
-
-type SajuFormState = {
-  birthDate: string
-  calendarType: 'SOLAR' | 'LUNAR'
-  birthTime: string | null
-  birthTimeKnown: boolean
-}
 
 function ConfirmPage() {
   const navigate = useNavigate()
@@ -14,8 +14,30 @@ function ConfirmPage() {
 
   const state = location.state as SajuFormState | null
 
+  const [isLoading, setIsLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
   if (!state) {
     return <div>입력 정보가 없습니다.</div>
+  }
+
+  const handleAnalyze = async () => {
+    try {
+      setIsLoading(true)
+      setErrorMessage(null)
+
+      const request = toSajuPreviewRequest(state)
+
+      const result: SajuPreviewResponse = await createSajuPreview(request)
+
+      navigate('/saju/preview', {
+        state: result,
+      })
+    } catch {
+      setErrorMessage('분석 중 문제가 발생했습니다.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -56,8 +78,15 @@ function ConfirmPage() {
           </div>
         </div>
 
-        <button type="button" className="confirm__next">
-          분석 시작하기
+        {errorMessage && <p className="saju__error">{errorMessage}</p>}
+
+        <button
+          type="button"
+          className="confirm__next"
+          disabled={isLoading}
+          onClick={handleAnalyze}
+        >
+          {isLoading ? '분석 중...' : '분석 시작하기'}
         </button>
       </section>
     </main>
