@@ -1,8 +1,8 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import type { SajuPreviewResponse } from '../../features/saju/types'
-import './PreviewPage.css'
+import './SajuPreviewPage.css'
 
-function PreviewPage() {
+function SajuPreviewPage() {
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -44,7 +44,7 @@ function PreviewPage() {
           </p>
         </div>
 
-        <button type="button" className="saju__next">
+        <button type="button" className="preview__next">
           전체 사주 분석 보기
         </button>
       </section>
@@ -52,4 +52,4 @@ function PreviewPage() {
   )
 }
 
-export default PreviewPage
+export default SajuPreviewPage

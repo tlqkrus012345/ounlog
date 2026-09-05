@@ -3,7 +3,7 @@ import type { SajuPreviewRequest, SajuPreviewResponse } from './types'
 export async function createSajuPreview(
   request: SajuPreviewRequest,
 ): Promise<SajuPreviewResponse> {
-  const response = await fetch('/api/v1/saju/previews', {
+  const response = await fetch('/v1/saju/previews', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
