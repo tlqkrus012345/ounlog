@@ -11,6 +11,7 @@ beforeAll(() => {
 
 afterEach(() => {
   server.resetHandlers()
+  sessionStorage.clear()
   cleanup()
 })
 

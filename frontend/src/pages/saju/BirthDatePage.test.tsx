@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
+import { saveSajuForm } from '../../features/saju/storage'
 import BirthDatePage from './BirthDatePage'
 
 function StateDisplay() {
@@ -43,6 +44,28 @@ describe('BirthDatePage', () => {
 
     expect(screen.getByTestId('route-state')).toHaveTextContent(
       JSON.stringify({ birthDate: '1998-08-21', calendarType: 'LUNAR' }),
+    )
+  })
+
+  it('sessionStorage의 기존 입력값으로 폼을 복구한다', () => {
+    saveSajuForm({
+      birthDate: '1998-08-21',
+      birthTime: null,
+      birthTimeKnown: false,
+      calendarType: 'LUNAR',
+    })
+
+    render(
+      <MemoryRouter initialEntries={['/saju']}>
+        <Routes>
+          <Route path="/saju" element={<BirthDatePage />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByLabelText('생년월일')).toHaveValue('1998-08-21')
+    expect(screen.getByRole('button', { name: '음력' })).toHaveClass(
+      'birth-date__calendar-button--selected',
     )
   })
 })

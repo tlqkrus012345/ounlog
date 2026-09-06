@@ -1,29 +1,14 @@
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import type { SajuPreviewResponse } from '../../features/saju/types'
 import './SajuPreviewPage.css'
 
 function SajuPreviewPage() {
   const location = useLocation()
-  const navigate = useNavigate()
 
   const result = location.state as SajuPreviewResponse | null
 
   if (!result) {
-    return (
-      <main className="preview">
-        <section className="preview__content">
-          <p>분석 결과를 찾을 수 없습니다.</p>
-
-          <button
-            type="button"
-            className="saju__next"
-            onClick={() => navigate('/saju')}
-          >
-            다시 분석하기
-          </button>
-        </section>
-      </main>
-    )
+    return <Navigate to="/saju" replace />
   }
 
   return (
