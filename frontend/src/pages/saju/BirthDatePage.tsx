@@ -1,14 +1,17 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { getSajuForm } from '../../features/saju/storage'
+import type { CalendarType } from '../../features/saju/types'
 import './BirthDatePage.css'
-
-type CalendarType = 'SOLAR' | 'LUNAR'
 
 function BirthDatePage() {
   const navigate = useNavigate()
+  const [storedForm] = useState(getSajuForm)
 
-  const [birthDate, setBirthDate] = useState('')
-  const [calendarType, setCalendarType] = useState<CalendarType>('SOLAR')
+  const [birthDate, setBirthDate] = useState(storedForm?.birthDate ?? '')
+  const [calendarType, setCalendarType] = useState<CalendarType>(
+    storedForm?.calendarType ?? 'SOLAR',
+  )
 
   const canProceed = birthDate !== ''
 

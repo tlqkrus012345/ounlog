@@ -1,16 +1,40 @@
 import { useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { getSajuForm, saveSajuForm } from '../../features/saju/storage'
+import type { SajuFormState } from '../../features/saju/types'
 import './BirthTimePage.css'
 
 function BirthTimePage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const [previousState] = useState(
+    () => (location.state as Partial<SajuFormState> | null) ?? getSajuForm(),
+  )
 
-  const [birthTime, setBirthTime] = useState('')
-  const [birthTimeKnown, setBirthTimeKnown] = useState(true)
+  const [birthTime, setBirthTime] = useState(previousState?.birthTime ?? '')
+  const [birthTimeKnown, setBirthTimeKnown] = useState(
+    previousState?.birthTimeKnown ?? true,
+  )
 
-  const previousState = location.state
   const canProceed = !birthTimeKnown || birthTime !== ''
+
+  if (!previousState?.birthDate || !previousState.calendarType) {
+    return <Navigate to="/saju" replace />
+  }
+
+  const { birthDate, calendarType } = previousState
+
+  const handleNext = () => {
+    const form: SajuFormState = {
+      birthDate,
+      calendarType,
+      birthTime: birthTimeKnown ? birthTime : null,
+      birthTimeKnown,
+    }
+
+    saveSajuForm(form)
+    navigate('/saju/confirm', { state: form })
+  }
 
   return (
     <main className="birth-time">
@@ -68,15 +92,7 @@ function BirthTimePage() {
           type="button"
           className="birth-time__next"
           disabled={!canProceed}
-          onClick={() =>
-            navigate('/saju/confirm', {
-              state: {
-                ...previousState,
-                birthTime: birthTimeKnown ? birthTime : null,
-                birthTimeKnown,
-              },
-            })
-          }
+          onClick={handleNext}
         >
           다음
         </button>

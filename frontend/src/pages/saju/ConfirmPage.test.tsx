@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import * as sajuApi from '../../features/saju/api'
+import { saveSajuForm } from '../../features/saju/storage'
 import type { SajuFormState } from '../../features/saju/types'
 import ConfirmPage from './ConfirmPage'
 import SajuPreviewPage from './SajuPreviewPage'
@@ -30,6 +31,17 @@ function renderConfirmPage() {
         <Route path="/saju/preview" element={<SajuPreviewPage />} />
       </Routes>
       <LocationDisplay />
+    </MemoryRouter>,
+  )
+}
+
+function renderConfirmPageWithoutLocationState() {
+  return render(
+    <MemoryRouter initialEntries={['/saju/confirm']}>
+      <Routes>
+        <Route path="/saju/confirm" element={<ConfirmPage />} />
+        <Route path="/saju" element={<LocationDisplay />} />
+      </Routes>
     </MemoryRouter>,
   )
 }
@@ -75,6 +87,22 @@ describe('ConfirmPage', () => {
     ).toBeInTheDocument()
     expect(screen.getByTestId('location')).toHaveTextContent('/saju/confirm')
     expect(screen.getByRole('button', { name: '분석 시작하기' })).toBeEnabled()
+  })
+
+  it('location.state가 없으면 sessionStorage의 입력값을 복구한다', () => {
+    saveSajuForm(FORM_STATE)
+
+    renderConfirmPageWithoutLocationState()
+
+    expect(screen.getByText('1998-08-21')).toBeInTheDocument()
+    expect(screen.getByText('양력')).toBeInTheDocument()
+    expect(screen.getByText('14:32')).toBeInTheDocument()
+  })
+
+  it('location.state와 저장 데이터가 모두 없으면 사주 입력 화면으로 이동한다', () => {
+    renderConfirmPageWithoutLocationState()
+
+    expect(screen.getByTestId('location')).toHaveTextContent('/saju')
   })
 
   it('분석 중에는 버튼을 비활성화하여 중복 요청을 방지한다', async () => {

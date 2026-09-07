@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { createSajuPreview } from '../../features/saju/api'
 import { toSajuPreviewRequest } from '../../features/saju/mapper'
+import { getSajuForm } from '../../features/saju/storage'
 import type {
   SajuFormState,
   SajuPreviewResponse,
@@ -12,13 +13,15 @@ function ConfirmPage() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const state = location.state as SajuFormState | null
+  const [state] = useState(
+    () => (location.state as SajuFormState | null) ?? getSajuForm(),
+  )
 
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   if (!state) {
-    return <div>입력 정보가 없습니다.</div>
+    return <Navigate to="/saju" replace />
   }
 
   const handleAnalyze = async () => {
