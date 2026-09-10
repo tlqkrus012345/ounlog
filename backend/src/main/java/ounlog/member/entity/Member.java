@@ -25,21 +25,26 @@ public class Member {
     @Column(nullable = false, length = 20)
     private MemberStatus status;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
     @Column(nullable = false)
     private Instant updatedAt;
 
-    private Member(String email, String passwordHash, MemberStatus status, Instant time) {
+    private Member(String email, String passwordHash, MemberStatus status, Instant time, Role role) {
         this.email = email;
         this.passwordHash = passwordHash;
         this.status = status;
         this.createdAt = time;
         this.updatedAt = time;
+        this.role = role;
     }
 
     public static Member signup(String email, String passwordHash) {
-        return new Member(email, passwordHash, MemberStatus.ACTIVE, Instant.now());
+        return new Member(email, passwordHash, MemberStatus.ACTIVE, Instant.now(), Role.MEMBER);
     }
 }
