@@ -24,9 +24,8 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http, JwtDecoder jwtDecoder) throws Exception {
 
         http.authorizeHttpRequests(auth -> auth.requestMatchers(
-                                "/v1/members/",
+                                "/v1/members/signup",
                                 "/v1/auth/login",
-                                "/v1/auth/refresh",
                                 "/v1/saju/previews")
                         .permitAll()
                         .anyRequest()
