@@ -9,6 +9,7 @@ import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Component;
+import ounlog.member.entity.Role;
 
 @Component
 @RequiredArgsConstructor
@@ -23,8 +24,6 @@ public class JwtTokenProvider {
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .subject(memberId.toString())
-                .issuer(jwtProperties.issuer())
-                .audience(List.of(jwtProperties.audience()))
                 .issuedAt(issuedAt)
                 .expiresAt(expiresAt)
                 .claim("role", role.name())

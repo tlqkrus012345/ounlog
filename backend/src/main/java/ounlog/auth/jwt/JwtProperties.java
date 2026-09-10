@@ -6,8 +6,6 @@ import org.springframework.core.io.Resource;
 
 @ConfigurationProperties(prefix = "jwt")
 public record JwtProperties(
-        String issuer,
-        String audience,
         Duration accessTokenTtl,
         Resource privateKeyLocation,
         Resource publicKeyLocation) {}
