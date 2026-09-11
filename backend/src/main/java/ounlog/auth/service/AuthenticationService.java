@@ -23,15 +23,9 @@ public class AuthenticationService {
 
         try {
             authentication = authenticationManager.authenticate(
-                    UsernamePasswordAuthenticationToken.unauthenticated(
-                            command.email(),
-                            command.password()
-                    )
-            );
+                    UsernamePasswordAuthenticationToken.unauthenticated(command.email(), command.password()));
         } catch (AuthenticationException exception) {
-            throw new AuthException(
-                    AuthErrorCode.INVALID_CREDENTIALS
-            );
+            throw new AuthException(AuthErrorCode.INVALID_CREDENTIALS);
         }
 
         AuthenticatedMember member = (AuthenticatedMember) authentication.getPrincipal();
