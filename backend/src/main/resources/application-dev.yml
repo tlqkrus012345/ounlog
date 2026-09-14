@@ -16,3 +16,8 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+
+jwt:
+  access-token-ttl: 15m
+  private-key-location: file:${JWT_PRIVATE_KEY_PATH}
+  public-key-location: file:${JWT_PUBLIC_KEY_PATH}
