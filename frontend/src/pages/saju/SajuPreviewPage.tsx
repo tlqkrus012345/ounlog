@@ -1,9 +1,10 @@
-import { Navigate, useLocation } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import type { SajuPreviewResponse } from '../../features/saju/types'
 import './SajuPreviewPage.css'
 
 function SajuPreviewPage() {
   const location = useLocation()
+  const navigate = useNavigate()
 
   const result = location.state as SajuPreviewResponse | null
 
@@ -29,7 +30,11 @@ function SajuPreviewPage() {
           </p>
         </div>
 
-        <button type="button" className="preview__next">
+        <button
+          type="button"
+          className="preview__next"
+          onClick={() => navigate('/signup')}
+        >
           전체 사주 분석 보기
         </button>
       </section>
