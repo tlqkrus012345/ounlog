@@ -1,8 +1,12 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { delay, http, HttpResponse } from 'msw'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
+import LoginPage from '../../pages/auth/LoginPage'
 import { server } from '../../test/server'
+import { AuthProvider } from '../auth/AuthProvider'
+import { useAuth } from '../auth/useAuth'
 import { SignupForm } from './SignupForm'
 
 const VALID_EMAIL = 'test@example.com'
@@ -13,13 +17,37 @@ interface RenderFilledSignupFormOptions {
   password?: string
 }
 
+function FullAnalysisDestination() {
+  const { accessToken } = useAuth()
+
+  return (
+    <>
+      <h1>전체 사주 분석</h1>
+      <output data-testid="access-token">{accessToken}</output>
+    </>
+  )
+}
+
 async function renderFilledSignupForm({
   email = VALID_EMAIL,
   password = VALID_PASSWORD,
 }: RenderFilledSignupFormOptions = {}) {
   const user = userEvent.setup()
 
-  render(<SignupForm />)
+  render(
+    <MemoryRouter initialEntries={['/signup']}>
+      <AuthProvider>
+        <Routes>
+          <Route path="/signup" element={<SignupForm />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route
+            path="/saju/full-analysis"
+            element={<FullAnalysisDestination />}
+          />
+        </Routes>
+      </AuthProvider>
+    </MemoryRouter>,
+  )
 
   const emailInput = screen.getByRole('textbox', {
     name: '이메일',
@@ -49,7 +77,7 @@ describe('SignupForm', () => {
     expect(passwordInput).toHaveAttribute('type', 'password')
   })
 
-  it('회원가입에 성공하면 성공 메시지를 표시하고 입력값을 비운다', async () => {
+  it('회원가입 후 로그인하고 Access Token을 저장한 뒤 전체 분석으로 이동한다', async () => {
     server.use(
       http.post('/v1/members/signup', async ({ request }) => {
         const requestBody = await request.json()
@@ -68,23 +96,34 @@ describe('SignupForm', () => {
           },
         )
       }),
+      http.post('/v1/auth/login', async ({ request }) => {
+        const requestBody = await request.json()
+
+        expect(requestBody).toEqual({
+          email: VALID_EMAIL,
+          password: VALID_PASSWORD,
+        })
+
+        return HttpResponse.json({
+          accessToken: 'access-token',
+          tokenType: 'Bearer',
+        })
+      }),
     )
 
-    const { user, emailInput, passwordInput, submitButton } =
-      await renderFilledSignupForm()
+    const { user, submitButton } = await renderFilledSignupForm()
 
     await user.click(submitButton)
 
-    expect(await screen.findByRole('status')).toHaveTextContent(
-      `${VALID_EMAIL} 계정이 생성되었습니다.`,
-    )
-
-    expect(emailInput).toHaveValue('')
-    expect(passwordInput).toHaveValue('')
-    expect(submitButton).toBeEnabled()
+    expect(
+      await screen.findByRole('heading', { name: '전체 사주 분석' }),
+    ).toBeInTheDocument()
+    expect(screen.getByTestId('access-token')).toHaveTextContent('access-token')
   })
 
-  it('이미 가입된 이메일이면 서버 오류 메시지를 표시한다', async () => {
+  it('회원가입이 실패하면 로그인 API를 호출하지 않는다', async () => {
+    let loginRequestCount = 0
+
     server.use(
       http.post('/v1/members/signup', () => {
         return HttpResponse.json(
@@ -99,6 +138,14 @@ describe('SignupForm', () => {
           },
         )
       }),
+      http.post('/v1/auth/login', () => {
+        loginRequestCount += 1
+
+        return HttpResponse.json({
+          accessToken: 'access-token',
+          tokenType: 'Bearer',
+        })
+      }),
     )
 
     const { user, submitButton } = await renderFilledSignupForm({
@@ -111,7 +158,38 @@ describe('SignupForm', () => {
       '이미 가입된 이메일입니다.',
     )
 
+    expect(loginRequestCount).toBe(0)
     expect(screen.getByRole('button', { name: '가입하기' })).toBeEnabled()
+  })
+
+  it('회원가입 후 로그인이 실패하면 안내 메시지와 함께 로그인 화면으로 이동한다', async () => {
+    server.use(
+      http.post('/v1/members/signup', () => {
+        return HttpResponse.json({ email: VALID_EMAIL }, { status: 201 })
+      }),
+      http.post('/v1/auth/login', () => {
+        return HttpResponse.json(
+          {
+            status: 401,
+            code: 'INVALID_CREDENTIALS',
+            message: '이메일 또는 비밀번호가 올바르지 않습니다.',
+            path: '/v1/auth/login',
+          },
+          { status: 401 },
+        )
+      }),
+    )
+
+    const { user, submitButton } = await renderFilledSignupForm()
+
+    await user.click(submitButton)
+
+    expect(
+      await screen.findByRole('heading', { name: '로그인' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent(
+      '회원가입은 완료되었습니다. 다시 로그인해주세요.',
+    )
   })
 
   it('서버가 이메일 Validation 오류를 반환하면 이메일 필드에 표시한다', async () => {
@@ -192,6 +270,12 @@ describe('SignupForm', () => {
           },
         )
       }),
+      http.post('/v1/auth/login', () => {
+        return HttpResponse.json({
+          accessToken: 'access-token',
+          tokenType: 'Bearer',
+        })
+      }),
     )
 
     const { user, submitButton } = await renderFilledSignupForm()
@@ -214,9 +298,9 @@ describe('SignupForm', () => {
 
     resolveRequest?.()
 
-    expect(await screen.findByRole('status')).toHaveTextContent(
-      `${VALID_EMAIL} 계정이 생성되었습니다.`,
-    )
+    expect(
+      await screen.findByRole('heading', { name: '전체 사주 분석' }),
+    ).toBeInTheDocument()
   })
 
   it('요청이 10초를 초과하면 timeout 메시지를 표시한다', async () => {
