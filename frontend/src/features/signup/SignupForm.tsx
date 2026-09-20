@@ -1,4 +1,7 @@
 import { useState, type FormEvent } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { login } from '../auth/api'
+import { useAuth } from '../auth/useAuth'
 import type { FieldError } from '../../shared/api/errors'
 import { signup, SignupApiError, SignupTimeoutError } from './api'
 import type { SignupRequest } from './types'
@@ -21,13 +24,14 @@ function convertFieldErrors(errors: FieldError[]): SignupFieldErrors {
 }
 
 export function SignupForm() {
+  const navigate = useNavigate()
+  const { setAccessToken } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<SignupFieldErrors>({})
   const [formError, setFormError] = useState('')
-  const [successMessage, setSuccessMessage] = useState('')
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -39,30 +43,41 @@ export function SignupForm() {
     setIsSubmitting(true)
     setFieldErrors({})
     setFormError('')
-    setSuccessMessage('')
 
     try {
-      const response = await signup({
-        email,
-        password,
-      })
+      try {
+        await signup({ email, password })
+      } catch (error) {
+        if (error instanceof SignupTimeoutError) {
+          setFormError(
+            '요청 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.',
+          )
+        } else if (error instanceof SignupApiError) {
+          const nextFieldErrors = convertFieldErrors(error.fieldErrors)
 
-      setSuccessMessage(`${response.email} 계정이 생성되었습니다.`)
-      setEmail('')
-      setPassword('')
-    } catch (error) {
-      if (error instanceof SignupTimeoutError) {
-        setFormError('요청 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.')
-      } else if (error instanceof SignupApiError) {
-        const nextFieldErrors = convertFieldErrors(error.fieldErrors)
+          setFieldErrors(nextFieldErrors)
 
-        setFieldErrors(nextFieldErrors)
-
-        if (Object.keys(nextFieldErrors).length === 0) {
-          setFormError(error.message)
+          if (Object.keys(nextFieldErrors).length === 0) {
+            setFormError(error.message)
+          }
+        } else {
+          setFormError('서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.')
         }
-      } else {
-        setFormError('서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.')
+
+        return
+      }
+
+      try {
+        const response = await login({ email, password })
+
+        setAccessToken(response.accessToken)
+        navigate('/saju/full-analysis')
+      } catch {
+        navigate('/login', {
+          state: {
+            message: '회원가입은 완료되었습니다. 다시 로그인해주세요.',
+          },
+        })
       }
     } finally {
       setIsSubmitting(false)
@@ -147,12 +162,6 @@ export function SignupForm() {
         {formError && (
           <p className="signup__form-error" role="alert">
             {formError}
-          </p>
-        )}
-
-        {successMessage && (
-          <p className="signup__success" role="status">
-            {successMessage}
           </p>
         )}
 

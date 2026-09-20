@@ -1,0 +1,6 @@
+ALTER TABLE member
+    ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'MEMBER';
+
+ALTER TABLE member
+    ADD CONSTRAINT ck_member_role
+        CHECK (role IN ('MEMBER'));
