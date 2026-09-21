@@ -3,7 +3,7 @@ package ounlog.saju.controller.request;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import ounlog.saju.CalendarType;
+import ounlog.saju.entity.CalendarType;
 import ounlog.saju.service.SajuPreviewCommand;
 
 public record SajuPreviewRequest(

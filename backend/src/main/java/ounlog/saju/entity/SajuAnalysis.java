@@ -15,7 +15,6 @@ import java.time.LocalTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import ounlog.saju.CalendarType;
 
 @Entity
 @Table(name = "saju_analysis")
