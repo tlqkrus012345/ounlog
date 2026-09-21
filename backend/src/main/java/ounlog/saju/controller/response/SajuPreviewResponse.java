@@ -1,4 +1,4 @@
-package ounlog.saju.controller;
+package ounlog.saju.controller.response;
 
 import ounlog.saju.service.SajuPreviewResult;
 

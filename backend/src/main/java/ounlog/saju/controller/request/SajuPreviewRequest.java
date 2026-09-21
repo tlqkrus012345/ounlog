@@ -1,4 +1,4 @@
-package ounlog.saju.controller;
+package ounlog.saju.controller.request;
 
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;

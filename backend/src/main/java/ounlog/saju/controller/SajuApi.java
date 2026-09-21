@@ -7,6 +7,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.ResponseEntity;
 import ounlog.common.exception.ApiErrorResponse;
+import ounlog.saju.controller.request.SajuPreviewRequest;
+import ounlog.saju.controller.response.SajuPreviewResponse;
 
 public interface SajuApi {
 
