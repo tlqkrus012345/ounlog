@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import ounlog.saju.entity.CalendarType;
-import ounlog.saju.service.SajuPreviewCommand;
+import ounlog.saju.service.command.SajuPreviewCommand;
 
 public record SajuPreviewRequest(
         @NotNull LocalDate birthDate,

@@ -2,6 +2,8 @@ package ounlog.saju.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ounlog.saju.service.command.SajuPreviewCommand;
+import ounlog.saju.service.result.SajuPreviewResult;
 
 @Service
 @Transactional(readOnly = true)
