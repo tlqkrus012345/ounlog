@@ -24,7 +24,7 @@ public class SajuAnalysis {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long analysisId;
+    private Long sajuAnalysisId;
 
     @Column(nullable = false)
     private Long memberId;
@@ -44,4 +44,24 @@ public class SajuAnalysis {
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
+
+    private SajuAnalysis(
+            Long memberId,
+            LocalDate birthDate,
+            LocalTime birthTime,
+            CalendarType calendarType,
+            String result,
+            Instant createdAt) {
+        this.memberId = memberId;
+        this.birthDate = birthDate;
+        this.birthTime = birthTime;
+        this.calendarType = calendarType;
+        this.result = result;
+        this.createdAt = createdAt;
+    }
+
+    public static SajuAnalysis create(
+            Long memberId, LocalDate birthDate, LocalTime birthTime, CalendarType calendarType, String result) {
+        return new SajuAnalysis(memberId, birthDate, birthTime, calendarType, result, Instant.now());
+    }
 }
