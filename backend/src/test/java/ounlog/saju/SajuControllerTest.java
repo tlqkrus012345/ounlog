@@ -3,6 +3,7 @@ package ounlog.saju;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -26,6 +27,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import ounlog.auth.config.SecurityConfig;
 import ounlog.saju.controller.SajuController;
 import ounlog.saju.entity.CalendarType;
+import ounlog.saju.exception.SajuErrorCode;
+import ounlog.saju.exception.SajuException;
 import ounlog.saju.service.SajuService;
 import ounlog.saju.service.command.SajuAnalysisCommand;
 import ounlog.saju.service.command.SajuPreviewCommand;
@@ -105,10 +108,10 @@ class SajuControllerTest {
                                   "calendarType": "SOLAR"
                                 }
                                 """))
-
                 // then
                 .andExpect(status().isCreated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.sajuAnalysisId").doesNotExist())
                 .andExpect(jsonPath("$.result").value("운세 결과"));
 
         then(sajuService).should().sajuAnalysis(command, 1L);
@@ -160,6 +163,58 @@ class SajuControllerTest {
                                   "calendarType": "SOLAR"
                                 }
                                 """))
+
+                // then
+                .andExpect(status().isUnauthorized());
+
+        then(sajuService).shouldHaveNoInteractions();
+    }
+
+    @DisplayName("인증된 회원이 사주 분석 결과를 조회하면 200을 반환한다.")
+    @Test
+    void getSajuAnalysis() throws Exception {
+        // given
+        given(jwtDecoder.decode("access-token")).willReturn(jwt(1L));
+        given(sajuService.getSajuAnalysis(1L)).willReturn(new SajuAnalysisResult("저장된 운세 결과"));
+
+        // when
+        mockMvc.perform(get("/v1/saju/analysis").header(HttpHeaders.AUTHORIZATION, "Bearer access-token"))
+
+                // then
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.sajuAnalysisId").doesNotExist())
+                .andExpect(jsonPath("$.result").value("저장된 운세 결과"));
+
+        then(sajuService).should().getSajuAnalysis(1L);
+    }
+
+    @DisplayName("사주 분석 결과가 없으면 404를 반환한다.")
+    @Test
+    void getSajuAnalysisNotFound() throws Exception {
+        // given
+        given(jwtDecoder.decode("access-token")).willReturn(jwt(1L));
+        given(sajuService.getSajuAnalysis(1L)).willThrow(new SajuException(SajuErrorCode.SAJU_ANALYSIS_NOT_FOUND));
+
+        // when
+        mockMvc.perform(get("/v1/saju/analysis").header(HttpHeaders.AUTHORIZATION, "Bearer access-token"))
+
+                // then
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.code").value("SAJU_ANALYSIS_NOT_FOUND"))
+                .andExpect(jsonPath("$.message").value("사주 분석 결과를 찾을 수 없습니다."))
+                .andExpect(jsonPath("$.path").value("/v1/saju/analysis"));
+
+        then(sajuService).should().getSajuAnalysis(1L);
+    }
+
+    @DisplayName("인증되지 않은 사주 분석 결과 조회 요청이면 401을 반환한다.")
+    @Test
+    void getSajuAnalysisWithUnauthenticated() throws Exception {
+        // when
+        mockMvc.perform(get("/v1/saju/analysis"))
 
                 // then
                 .andExpect(status().isUnauthorized());

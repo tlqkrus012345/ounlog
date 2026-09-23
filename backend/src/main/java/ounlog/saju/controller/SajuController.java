@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,5 +39,12 @@ public class SajuController implements SajuApi {
             @AuthenticationPrincipal Jwt jwt, @Valid @RequestBody SajuAnalysisRequest request) {
         SajuAnalysisResult result = sajuService.sajuAnalysis(request.toCommand(), Long.valueOf(jwt.getSubject()));
         return ResponseEntity.status(HttpStatus.CREATED).body(SajuAnalysisResponse.from(result));
+    }
+
+    @Override
+    @GetMapping("/analysis")
+    public ResponseEntity<SajuAnalysisResponse> getSajuAnalysis(@AuthenticationPrincipal Jwt jwt) {
+        SajuAnalysisResult result = sajuService.getSajuAnalysis(Long.valueOf(jwt.getSubject()));
+        return ResponseEntity.ok(SajuAnalysisResponse.from(result));
     }
 }

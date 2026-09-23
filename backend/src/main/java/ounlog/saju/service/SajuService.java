@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ounlog.saju.entity.SajuAnalysis;
+import ounlog.saju.exception.SajuErrorCode;
+import ounlog.saju.exception.SajuException;
 import ounlog.saju.repository.SajuAnalysisRepository;
 import ounlog.saju.service.command.SajuAnalysisCommand;
 import ounlog.saju.service.command.SajuPreviewCommand;
@@ -24,17 +26,21 @@ public class SajuService {
 
     @Transactional
     public SajuAnalysisResult sajuAnalysis(SajuAnalysisCommand command, Long memberId) {
-        SajuAnalysisResult sajuAnalysisResult = sajuAnalysisGenerator.generate(command);
+        String sajuAnalysisResult = sajuAnalysisGenerator.generate(command);
 
         SajuAnalysis sajuAnalysis = SajuAnalysis.create(
-                memberId,
-                command.birthDate(),
-                command.birthTime(),
-                command.calendarType(),
-                sajuAnalysisResult.result());
+                memberId, command.birthDate(), command.birthTime(), command.calendarType(), sajuAnalysisResult);
 
         sajuAnalysisRepository.save(sajuAnalysis);
 
-        return sajuAnalysisResult;
+        return new SajuAnalysisResult(sajuAnalysisResult);
+    }
+
+    public SajuAnalysisResult getSajuAnalysis(Long memberId) {
+        SajuAnalysis sajuAnalysis = sajuAnalysisRepository
+                .findByMemberId(memberId)
+                .orElseThrow(() -> new SajuException(SajuErrorCode.SAJU_ANALYSIS_NOT_FOUND));
+
+        return new SajuAnalysisResult(sajuAnalysis.getResult());
     }
 }

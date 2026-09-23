@@ -44,4 +44,21 @@ public interface SajuApi {
                 content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     ResponseEntity<SajuAnalysisResponse> sajuAnalysis(Jwt jwt, SajuAnalysisRequest request);
+
+    @Operation(summary = "사주 분석 결과 조회", description = "로그인한 회원의 사주 분석 결과를 조회합니다.")
+    @ApiResponses({
+        @ApiResponse(
+                responseCode = "200",
+                description = "사주 분석 결과 조회 성공",
+                content = @Content(schema = @Schema(implementation = SajuAnalysisResponse.class))),
+        @ApiResponse(
+                responseCode = "401",
+                description = "인증 실패",
+                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "사주 분석 결과 없음",
+                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    ResponseEntity<SajuAnalysisResponse> getSajuAnalysis(Jwt jwt);
 }
