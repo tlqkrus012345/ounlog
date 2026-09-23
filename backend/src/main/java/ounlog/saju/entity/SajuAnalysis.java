@@ -26,7 +26,7 @@ public class SajuAnalysis {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long sajuAnalysisId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private Long memberId;
 
     @Column(nullable = false)
