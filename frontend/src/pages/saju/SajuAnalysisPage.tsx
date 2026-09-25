@@ -1,4 +1,4 @@
-function FullAnalysisPage() {
+function SajuAnalysisPage() {
   return (
     <main>
       <h1>전체 사주 분석</h1>
@@ -7,4 +7,4 @@ function FullAnalysisPage() {
   )
 }
 
-export default FullAnalysisPage
+export default SajuAnalysisPage

@@ -7,7 +7,7 @@ import BirthTimePage from '../pages/saju/BirthTimePage'
 import ConfirmPage from '../pages/saju/ConfirmPage'
 import SplashPage from '../pages/splash/SplashPage'
 import SajuPreviewPage from '../pages/saju/SajuPreviewPage'
-import FullAnalysisPage from '../pages/saju/FullAnalysisPage'
+import FullAnalysisPage from '../pages/saju/SajuAnalysisPage'
 
 export function AppRoutes() {
   return (
@@ -20,7 +20,7 @@ export function AppRoutes() {
       <Route path="/saju/birth-time" element={<BirthTimePage />} />
       <Route path="/saju/confirm" element={<ConfirmPage />} />
       <Route path="/saju/preview" element={<SajuPreviewPage />} />
-      <Route path="/saju/full-analysis" element={<FullAnalysisPage />} />
+      <Route path="/saju/analysis" element={<SajuAnalysisPage />} />
     </Routes>
   )
 }
