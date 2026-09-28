@@ -29,9 +29,11 @@ import ounlog.saju.controller.SajuController;
 import ounlog.saju.entity.CalendarType;
 import ounlog.saju.exception.SajuErrorCode;
 import ounlog.saju.exception.SajuException;
+import ounlog.saju.service.SajuAnalysisStatus;
 import ounlog.saju.service.SajuService;
 import ounlog.saju.service.command.SajuAnalysisCommand;
 import ounlog.saju.service.command.SajuPreviewCommand;
+import ounlog.saju.service.result.SajuAnalysisCreateResult;
 import ounlog.saju.service.result.SajuAnalysisResult;
 import ounlog.saju.service.result.SajuPreviewResult;
 
@@ -95,7 +97,8 @@ class SajuControllerTest {
         SajuAnalysisCommand command =
                 new SajuAnalysisCommand(LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR);
         given(jwtDecoder.decode("access-token")).willReturn(jwt(1L));
-        given(sajuService.sajuAnalysis(command, 1L)).willReturn(new SajuAnalysisResult("운세 결과"));
+        given(sajuService.sajuAnalysis(command, 1L))
+                .willReturn(new SajuAnalysisCreateResult(SajuAnalysisStatus.CREATED, "운세 결과"));
 
         // when
         mockMvc.perform(post("/v1/saju/analysis")
@@ -113,6 +116,35 @@ class SajuControllerTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.sajuAnalysisId").doesNotExist())
                 .andExpect(jsonPath("$.result").value("운세 결과"));
+
+        then(sajuService).should().sajuAnalysis(command, 1L);
+    }
+
+    @DisplayName("이미 분석 결과가 있으면 기존 결과와 200 응답을 반환한다.")
+    @Test
+    void sajuAnalysisWithExistingResult() throws Exception {
+        // given
+        SajuAnalysisCommand command =
+                new SajuAnalysisCommand(LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR);
+        given(jwtDecoder.decode("access-token")).willReturn(jwt(1L));
+        given(sajuService.sajuAnalysis(command, 1L))
+                .willReturn(new SajuAnalysisCreateResult(SajuAnalysisStatus.EXISTING, "기존 운세 결과"));
+
+        // when
+        mockMvc.perform(post("/v1/saju/analysis")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer access-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "birthDate": "2026-01-01",
+                                  "birthTime": "10:00",
+                                  "calendarType": "SOLAR"
+                                }
+                                """))
+                // then
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.result").value("기존 운세 결과"));
 
         then(sajuService).should().sajuAnalysis(command, 1L);
     }

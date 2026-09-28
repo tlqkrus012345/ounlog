@@ -16,6 +16,7 @@ import ounlog.saju.controller.request.SajuPreviewRequest;
 import ounlog.saju.controller.response.SajuAnalysisResponse;
 import ounlog.saju.controller.response.SajuPreviewResponse;
 import ounlog.saju.service.SajuService;
+import ounlog.saju.service.result.SajuAnalysisCreateResult;
 import ounlog.saju.service.result.SajuAnalysisResult;
 import ounlog.saju.service.result.SajuPreviewResult;
 
@@ -37,8 +38,13 @@ public class SajuController implements SajuApi {
     @PostMapping("/analysis")
     public ResponseEntity<SajuAnalysisResponse> sajuAnalysis(
             @AuthenticationPrincipal Jwt jwt, @Valid @RequestBody SajuAnalysisRequest request) {
-        SajuAnalysisResult result = sajuService.sajuAnalysis(request.toCommand(), Long.valueOf(jwt.getSubject()));
-        return ResponseEntity.status(HttpStatus.CREATED).body(SajuAnalysisResponse.from(result));
+        SajuAnalysisCreateResult result = sajuService.sajuAnalysis(request.toCommand(), Long.valueOf(jwt.getSubject()));
+        HttpStatus httpStatus =
+                switch (result.sajuAnalysisStatus()) {
+                    case CREATED -> HttpStatus.CREATED;
+                    case EXISTING -> HttpStatus.OK;
+                };
+        return ResponseEntity.status(httpStatus).body(SajuAnalysisResponse.from(result));
     }
 
     @Override

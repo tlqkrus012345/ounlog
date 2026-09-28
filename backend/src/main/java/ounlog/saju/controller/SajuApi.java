@@ -35,6 +35,10 @@ public interface SajuApi {
                 description = "사주 분석 결과 생성 성공",
                 content = @Content(schema = @Schema(implementation = SajuAnalysisResponse.class))),
         @ApiResponse(
+                responseCode = "200",
+                description = "기존 사주 분석 결과 반환",
+                content = @Content(schema = @Schema(implementation = SajuAnalysisResponse.class))),
+        @ApiResponse(
                 responseCode = "400",
                 description = "요청값 검증 실패",
                 content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),

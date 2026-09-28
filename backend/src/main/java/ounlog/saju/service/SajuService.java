@@ -1,6 +1,8 @@
 package ounlog.saju.service;
 
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ounlog.saju.entity.SajuAnalysis;
@@ -9,11 +11,11 @@ import ounlog.saju.exception.SajuException;
 import ounlog.saju.repository.SajuAnalysisRepository;
 import ounlog.saju.service.command.SajuAnalysisCommand;
 import ounlog.saju.service.command.SajuPreviewCommand;
+import ounlog.saju.service.result.SajuAnalysisCreateResult;
 import ounlog.saju.service.result.SajuAnalysisResult;
 import ounlog.saju.service.result.SajuPreviewResult;
 
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class SajuService {
 
@@ -24,18 +26,29 @@ public class SajuService {
         return new SajuPreviewResult("키워드", "요약 내용");
     }
 
-    @Transactional
-    public SajuAnalysisResult sajuAnalysis(SajuAnalysisCommand command, Long memberId) {
-        String sajuAnalysisResult = sajuAnalysisGenerator.generate(command);
+    public SajuAnalysisCreateResult sajuAnalysis(SajuAnalysisCommand command, Long memberId) {
+        Optional<SajuAnalysis> existing = sajuAnalysisRepository.findByMemberId(memberId);
 
+        if (existing.isPresent()) {
+            return new SajuAnalysisCreateResult(
+                    SajuAnalysisStatus.EXISTING, existing.get().getResult());
+        }
+
+        String sajuAnalysisResult = sajuAnalysisGenerator.generate(command);
         SajuAnalysis sajuAnalysis = SajuAnalysis.create(
                 memberId, command.birthDate(), command.birthTime(), command.calendarType(), sajuAnalysisResult);
-
-        sajuAnalysisRepository.save(sajuAnalysis);
-
-        return new SajuAnalysisResult(sajuAnalysisResult);
+        try {
+            sajuAnalysisRepository.saveAndFlush(sajuAnalysis);
+            return new SajuAnalysisCreateResult(SajuAnalysisStatus.CREATED, sajuAnalysisResult);
+        } catch (DataIntegrityViolationException exception) {
+            return sajuAnalysisRepository
+                    .findByMemberId(memberId)
+                    .map(analysis -> new SajuAnalysisCreateResult(SajuAnalysisStatus.EXISTING, analysis.getResult()))
+                    .orElseThrow(() -> exception);
+        }
     }
 
+    @Transactional(readOnly = true)
     public SajuAnalysisResult getSajuAnalysis(Long memberId) {
         SajuAnalysis sajuAnalysis = sajuAnalysisRepository
                 .findByMemberId(memberId)
