@@ -1,16 +1,25 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { delay, http, HttpResponse } from 'msw'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import LoginPage from '../../pages/auth/LoginPage'
 import { server } from '../../test/server'
 import { AuthProvider } from '../auth/AuthProvider'
 import { useAuth } from '../auth/useAuth'
+import { saveSajuForm } from '../saju/storage'
+import type { SajuAnalysisResponse, SajuFormState } from '../saju/types'
 import { SignupForm } from './SignupForm'
 
 const VALID_EMAIL = 'test@example.com'
 const VALID_PASSWORD = 'password123'
+
+const SAJU_FORM: SajuFormState = {
+  birthDate: '1995-03-21',
+  birthTime: '14:30',
+  birthTimeKnown: true,
+  calendarType: 'SOLAR',
+}
 
 interface RenderFilledSignupFormOptions {
   email?: string
@@ -19,11 +28,14 @@ interface RenderFilledSignupFormOptions {
 
 function FullAnalysisDestination() {
   const { accessToken } = useAuth()
+  const location = useLocation()
+  const result = location.state as SajuAnalysisResponse | null
 
   return (
     <>
       <h1>전체 사주 분석</h1>
       <output data-testid="access-token">{accessToken}</output>
+      <output data-testid="analysis-result">{result?.result}</output>
     </>
   )
 }
@@ -33,6 +45,7 @@ async function renderFilledSignupForm({
   password = VALID_PASSWORD,
 }: RenderFilledSignupFormOptions = {}) {
   const user = userEvent.setup()
+  saveSajuForm(SAJU_FORM)
 
   render(
     <MemoryRouter initialEntries={['/signup']}>
@@ -40,10 +53,7 @@ async function renderFilledSignupForm({
         <Routes>
           <Route path="/signup" element={<SignupForm />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route
-            path="/saju/full-analysis"
-            element={<FullAnalysisDestination />}
-          />
+          <Route path="/saju/analysis" element={<FullAnalysisDestination />} />
         </Routes>
       </AuthProvider>
     </MemoryRouter>,
@@ -109,6 +119,21 @@ describe('SignupForm', () => {
           tokenType: 'Bearer',
         })
       }),
+      http.post('/v1/saju/analysis', async ({ request }) => {
+        expect(request.headers.get('Authorization')).toBe('Bearer access-token')
+        expect(await request.json()).toEqual({
+          birthDate: '1995-03-21',
+          birthTime: '14:30',
+          calendarType: 'SOLAR',
+        })
+
+        return HttpResponse.json(
+          {
+            result: '전체 사주 분석 결과입니다.',
+          },
+          { status: 201 },
+        )
+      }),
     )
 
     const { user, submitButton } = await renderFilledSignupForm()
@@ -119,10 +144,14 @@ describe('SignupForm', () => {
       await screen.findByRole('heading', { name: '전체 사주 분석' }),
     ).toBeInTheDocument()
     expect(screen.getByTestId('access-token')).toHaveTextContent('access-token')
+    expect(screen.getByTestId('analysis-result')).toHaveTextContent(
+      '전체 사주 분석 결과입니다.',
+    )
   })
 
   it('회원가입이 실패하면 로그인 API를 호출하지 않는다', async () => {
     let loginRequestCount = 0
+    let analysisRequestCount = 0
 
     server.use(
       http.post('/v1/members/signup', () => {
@@ -146,6 +175,11 @@ describe('SignupForm', () => {
           tokenType: 'Bearer',
         })
       }),
+      http.post('/v1/saju/analysis', () => {
+        analysisRequestCount += 1
+
+        return HttpResponse.json({ result: '전체 사주 분석 결과입니다.' })
+      }),
     )
 
     const { user, submitButton } = await renderFilledSignupForm({
@@ -159,10 +193,13 @@ describe('SignupForm', () => {
     )
 
     expect(loginRequestCount).toBe(0)
+    expect(analysisRequestCount).toBe(0)
     expect(screen.getByRole('button', { name: '가입하기' })).toBeEnabled()
   })
 
   it('회원가입 후 로그인이 실패하면 안내 메시지와 함께 로그인 화면으로 이동한다', async () => {
+    let analysisRequestCount = 0
+
     server.use(
       http.post('/v1/members/signup', () => {
         return HttpResponse.json({ email: VALID_EMAIL }, { status: 201 })
@@ -178,6 +215,11 @@ describe('SignupForm', () => {
           { status: 401 },
         )
       }),
+      http.post('/v1/saju/analysis', () => {
+        analysisRequestCount += 1
+
+        return HttpResponse.json({ result: '전체 사주 분석 결과입니다.' })
+      }),
     )
 
     const { user, submitButton } = await renderFilledSignupForm()
@@ -190,6 +232,7 @@ describe('SignupForm', () => {
     expect(screen.getByRole('status')).toHaveTextContent(
       '회원가입은 완료되었습니다. 다시 로그인해주세요.',
     )
+    expect(analysisRequestCount).toBe(0)
   })
 
   it('서버가 이메일 Validation 오류를 반환하면 이메일 필드에 표시한다', async () => {
@@ -275,6 +318,12 @@ describe('SignupForm', () => {
           accessToken: 'access-token',
           tokenType: 'Bearer',
         })
+      }),
+      http.post('/v1/saju/analysis', () => {
+        return HttpResponse.json(
+          { result: '전체 사주 분석 결과입니다.' },
+          { status: 201 },
+        )
       }),
     )
 

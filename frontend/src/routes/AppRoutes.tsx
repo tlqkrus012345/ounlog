@@ -7,7 +7,7 @@ import BirthTimePage from '../pages/saju/BirthTimePage'
 import ConfirmPage from '../pages/saju/ConfirmPage'
 import SplashPage from '../pages/splash/SplashPage'
 import SajuPreviewPage from '../pages/saju/SajuPreviewPage'
-import FullAnalysisPage from '../pages/saju/SajuAnalysisPage'
+import SajuAnalysisPage from '../pages/saju/SajuAnalysisPage'
 
 export function AppRoutes() {
   return (

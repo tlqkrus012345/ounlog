@@ -2,6 +2,9 @@ import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { login } from '../auth/api'
 import { useAuth } from '../auth/useAuth'
+import { createSajuAnalysis } from '../saju/api'
+import { toSajuAnalysisRequest } from '../saju/mapper'
+import { getSajuForm } from '../saju/storage'
 import type { FieldError } from '../../shared/api/errors'
 import { signup, SignupApiError, SignupTimeoutError } from './api'
 import type { SignupRequest } from './types'
@@ -67,17 +70,40 @@ export function SignupForm() {
         return
       }
 
+      let accessToken: string
+
       try {
         const response = await login({ email, password })
-
-        setAccessToken(response.accessToken)
-        navigate('/saju/full-analysis')
+        accessToken = response.accessToken
+        setAccessToken(accessToken)
       } catch {
         navigate('/login', {
           state: {
             message: '회원가입은 완료되었습니다. 다시 로그인해주세요.',
           },
         })
+        return
+      }
+
+      const sajuForm = getSajuForm()
+
+      if (!sajuForm) {
+        navigate('/saju', { replace: true })
+        return
+      }
+
+      try {
+        const analysisRequest = toSajuAnalysisRequest(sajuForm)
+        const analysisResult = await createSajuAnalysis(
+          analysisRequest,
+          accessToken,
+        )
+
+        navigate('/saju/analysis', {
+          state: analysisResult,
+        })
+      } catch {
+        setFormError('사주 분석을 생성하지 못했습니다. 다시 시도해주세요.')
       }
     } finally {
       setIsSubmitting(false)
