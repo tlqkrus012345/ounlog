@@ -27,17 +27,21 @@ interface RenderFilledSignupFormOptions {
 }
 
 function FullAnalysisDestination() {
-  const { accessToken } = useAuth()
   const location = useLocation()
   const result = location.state as SajuAnalysisResponse | null
 
   return (
     <>
       <h1>전체 사주 분석</h1>
-      <output data-testid="access-token">{accessToken}</output>
       <output data-testid="analysis-result">{result?.result}</output>
     </>
   )
+}
+
+function AuthState() {
+  const { accessToken } = useAuth()
+
+  return <span data-testid="access-token">{accessToken}</span>
 }
 
 async function renderFilledSignupForm({
@@ -50,6 +54,7 @@ async function renderFilledSignupForm({
   render(
     <MemoryRouter initialEntries={['/signup']}>
       <AuthProvider>
+        <AuthState />
         <Routes>
           <Route path="/signup" element={<SignupForm />} />
           <Route path="/login" element={<LoginPage />} />
@@ -350,6 +355,108 @@ describe('SignupForm', () => {
     expect(
       await screen.findByRole('heading', { name: '전체 사주 분석' }),
     ).toBeInTheDocument()
+  })
+
+  it('Full Analysis 요청 중에는 버튼을 비활성화한다', async () => {
+    let resolveAnalysis: (() => void) | undefined
+
+    server.use(
+      http.post('/v1/members/signup', () => {
+        return HttpResponse.json({ email: VALID_EMAIL }, { status: 201 })
+      }),
+      http.post('/v1/auth/login', () => {
+        return HttpResponse.json({
+          accessToken: 'access-token',
+          tokenType: 'Bearer',
+        })
+      }),
+      http.post('/v1/saju/analysis', async () => {
+        await new Promise<void>((resolve) => {
+          resolveAnalysis = resolve
+        })
+
+        return HttpResponse.json(
+          { result: '전체 사주 분석 결과입니다.' },
+          { status: 201 },
+        )
+      }),
+    )
+
+    const { user, submitButton } = await renderFilledSignupForm()
+
+    await user.click(submitButton)
+
+    const analyzingButton = await screen.findByRole('button', {
+      name: '사주 분석 생성 중...',
+    })
+    expect(analyzingButton).toBeDisabled()
+
+    resolveAnalysis?.()
+
+    expect(
+      await screen.findByRole('heading', { name: '전체 사주 분석' }),
+    ).toBeInTheDocument()
+  })
+
+  it('Full Analysis 실패 후 회원가입과 로그인 없이 분석만 다시 시도한다', async () => {
+    let signupRequestCount = 0
+    let loginRequestCount = 0
+    let analysisRequestCount = 0
+
+    server.use(
+      http.post('/v1/members/signup', () => {
+        signupRequestCount += 1
+        return HttpResponse.json({ email: VALID_EMAIL }, { status: 201 })
+      }),
+      http.post('/v1/auth/login', () => {
+        loginRequestCount += 1
+        return HttpResponse.json({
+          accessToken: 'access-token',
+          tokenType: 'Bearer',
+        })
+      }),
+      http.post('/v1/saju/analysis', () => {
+        analysisRequestCount += 1
+
+        if (analysisRequestCount === 1) {
+          return HttpResponse.json(
+            {
+              status: 500,
+              code: 'INTERNAL_SERVER_ERROR',
+              message: '서버 내부 오류가 발생했습니다.',
+              path: '/v1/saju/analysis',
+            },
+            { status: 500 },
+          )
+        }
+
+        return HttpResponse.json(
+          { result: '재시도로 생성한 전체 사주 분석 결과입니다.' },
+          { status: 201 },
+        )
+      }),
+    )
+
+    const { user, submitButton } = await renderFilledSignupForm()
+
+    await user.click(submitButton)
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      '사주 분석을 생성하지 못했습니다. 다시 시도해주세요.',
+    )
+    expect(screen.getByTestId('access-token')).toHaveTextContent('access-token')
+
+    await user.click(screen.getByRole('button', { name: '다시 시도' }))
+
+    expect(
+      await screen.findByRole('heading', { name: '전체 사주 분석' }),
+    ).toBeInTheDocument()
+    expect(screen.getByTestId('analysis-result')).toHaveTextContent(
+      '재시도로 생성한 전체 사주 분석 결과입니다.',
+    )
+    expect(signupRequestCount).toBe(1)
+    expect(loginRequestCount).toBe(1)
+    expect(analysisRequestCount).toBe(2)
   })
 
   it('요청이 10초를 초과하면 timeout 메시지를 표시한다', async () => {
