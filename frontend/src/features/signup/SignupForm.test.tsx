@@ -8,7 +8,7 @@ import { server } from '../../test/server'
 import { AuthProvider } from '../auth/AuthProvider'
 import { useAuth } from '../auth/useAuth'
 import { saveSajuForm } from '../saju/storage'
-import type { SajuAnalysisResponse, SajuFormState } from '../saju/types'
+import type { SajuAnalysisCreationResult, SajuFormState } from '../saju/types'
 import { SignupForm } from './SignupForm'
 
 const VALID_EMAIL = 'test@example.com'
@@ -28,7 +28,7 @@ interface RenderFilledSignupFormOptions {
 
 function FullAnalysisDestination() {
   const location = useLocation()
-  const result = location.state as SajuAnalysisResponse | null
+  const result = location.state as SajuAnalysisCreationResult | null
 
   return (
     <>

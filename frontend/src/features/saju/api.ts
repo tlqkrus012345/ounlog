@@ -1,5 +1,7 @@
-import { request } from '../../shared/api/client'
+import { request, requestWithStatus } from '../../shared/api/client'
+import { InvalidApiResponseError } from '../../shared/api/errors'
 import type {
+  SajuAnalysisCreationResult,
   SajuAnalysisRequest,
   SajuAnalysisResponse,
   SajuPreviewRequest,
@@ -38,8 +40,8 @@ export async function createSajuPreview(
 export async function createSajuAnalysis(
   analysisRequest: SajuAnalysisRequest,
   accessToken: string,
-): Promise<SajuAnalysisResponse> {
-  return request('/v1/saju/analysis', {
+): Promise<SajuAnalysisCreationResult> {
+  const response = await requestWithStatus('/v1/saju/analysis', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -48,4 +50,13 @@ export async function createSajuAnalysis(
     body: JSON.stringify(analysisRequest),
     validate: isSajuAnalysisResponse,
   })
+
+  if (response.status !== 200 && response.status !== 201) {
+    throw new InvalidApiResponseError()
+  }
+
+  return {
+    ...response.data,
+    status: response.status === 200 ? 'EXISTING' : 'CREATED',
+  }
 }

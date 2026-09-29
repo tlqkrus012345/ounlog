@@ -45,6 +45,15 @@ export async function request<TResponse>(
   url: string,
   options: RequestOptions<TResponse>,
 ): Promise<TResponse> {
+  const response = await requestWithStatus(url, options)
+
+  return response.data
+}
+
+export async function requestWithStatus<TResponse>(
+  url: string,
+  options: RequestOptions<TResponse>,
+): Promise<{ data: TResponse; status: number }> {
   const { timeoutMs = DEFAULT_TIMEOUT_MS, validate, ...requestInit } = options
   const controller = new AbortController()
   const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs)
@@ -67,7 +76,10 @@ export async function request<TResponse>(
       throw new InvalidApiResponseError()
     }
 
-    return responseBody
+    return {
+      data: responseBody,
+      status: response.status,
+    }
   } catch (error) {
     if (controller.signal.aborted) {
       throw new ApiTimeoutError()

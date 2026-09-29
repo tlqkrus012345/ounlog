@@ -27,3 +27,7 @@ export type SajuPreviewResponse = {
 export type SajuAnalysisResponse = {
   result: string
 }
+
+export type SajuAnalysisCreationResult = SajuAnalysisResponse & {
+  status: 'CREATED' | 'EXISTING'
+}
