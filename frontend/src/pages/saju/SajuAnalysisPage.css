@@ -1,0 +1,48 @@
+.analysis {
+  min-height: 100vh;
+
+  display: flex;
+  justify-content: center;
+
+  padding: 80px 24px;
+
+  background-color: #f8f8fb;
+}
+
+.analysis__content {
+  width: 100%;
+  max-width: 720px;
+}
+
+.analysis__eyebrow {
+  margin: 0 0 12px;
+
+  color: #5147e5;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.analysis__content h1 {
+  margin: 0 0 32px;
+
+  color: #18181b;
+  font-size: 36px;
+}
+
+.analysis__result {
+  padding: 32px;
+
+  border: 1px solid #e8e8ee;
+  border-radius: 16px;
+
+  background-color: #ffffff;
+}
+
+.analysis__result p {
+  margin: 0;
+
+  color: #27272a;
+  font-size: 17px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+}

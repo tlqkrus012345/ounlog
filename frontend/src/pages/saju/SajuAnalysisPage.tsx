@@ -1,8 +1,25 @@
+import { Navigate, useLocation } from 'react-router-dom'
+import type { SajuAnalysisResponse } from '../../features/saju/types'
+import './SajuAnalysisPage.css'
+
 function SajuAnalysisPage() {
+  const location = useLocation()
+  const analysis = location.state as SajuAnalysisResponse | null
+
+  if (!analysis) {
+    return <Navigate to="/saju" replace />
+  }
+
   return (
-    <main>
-      <h1>전체 사주 분석</h1>
-      <p>전체 분석 기능을 준비 중입니다.</p>
+    <main className="analysis">
+      <section className="analysis__content">
+        <p className="analysis__eyebrow">사주 분석이 완료되었습니다.</p>
+        <h1>전체 사주 분석</h1>
+
+        <div className="analysis__result">
+          <p>{analysis.result}</p>
+        </div>
+      </section>
     </main>
   )
 }
