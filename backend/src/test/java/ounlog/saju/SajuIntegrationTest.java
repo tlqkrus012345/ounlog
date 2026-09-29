@@ -18,7 +18,6 @@ import org.springframework.context.annotation.Import;
 import ounlog.config.MysqlTestContainerConfig;
 import ounlog.saju.entity.CalendarType;
 import ounlog.saju.repository.SajuAnalysisRepository;
-import ounlog.saju.service.SajuAnalysisGenerator;
 import ounlog.saju.service.SajuAnalysisStatus;
 import ounlog.saju.service.SajuService;
 import ounlog.saju.service.command.SajuAnalysisCommand;
