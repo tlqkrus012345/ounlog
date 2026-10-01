@@ -2,6 +2,9 @@ import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { login } from '../auth/api'
 import { useAuth } from '../auth/useAuth'
+import { createSajuAnalysis } from '../saju/api'
+import { toSajuAnalysisRequest } from '../saju/mapper'
+import { getSajuForm } from '../saju/storage'
 import type { FieldError } from '../../shared/api/errors'
 import { signup, SignupApiError, SignupTimeoutError } from './api'
 import type { SignupRequest } from './types'
@@ -10,6 +13,8 @@ import './SignupForm.css'
 type SignupField = keyof SignupRequest
 
 type SignupFieldErrors = Partial<Record<SignupField, string>>
+
+type SubmissionStep = 'idle' | 'signup' | 'login' | 'analysis'
 
 function convertFieldErrors(errors: FieldError[]): SignupFieldErrors {
   const fieldErrors: SignupFieldErrors = {}
@@ -25,13 +30,39 @@ function convertFieldErrors(errors: FieldError[]): SignupFieldErrors {
 
 export function SignupForm() {
   const navigate = useNavigate()
-  const { setAccessToken } = useAuth()
+  const { accessToken, setAccessToken } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submissionStep, setSubmissionStep] = useState<SubmissionStep>('idle')
   const [fieldErrors, setFieldErrors] = useState<SignupFieldErrors>({})
   const [formError, setFormError] = useState('')
+  const [analysisFailed, setAnalysisFailed] = useState(false)
+
+  const isSubmitting = submissionStep !== 'idle'
+
+  async function runSajuAnalysis(token: string) {
+    const sajuForm = getSajuForm()
+
+    if (!sajuForm) {
+      navigate('/saju', { replace: true })
+      return
+    }
+
+    setSubmissionStep('analysis')
+
+    try {
+      const analysisRequest = toSajuAnalysisRequest(sajuForm)
+      const analysisResult = await createSajuAnalysis(analysisRequest, token)
+
+      navigate('/saju/analysis', {
+        state: analysisResult,
+      })
+    } catch {
+      setAnalysisFailed(true)
+      setFormError('사주 분석을 생성하지 못했습니다. 다시 시도해주세요.')
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -40,7 +71,7 @@ export function SignupForm() {
       return
     }
 
-    setIsSubmitting(true)
+    setSubmissionStep('signup')
     setFieldErrors({})
     setFormError('')
 
@@ -67,20 +98,39 @@ export function SignupForm() {
         return
       }
 
-      try {
-        const response = await login({ email, password })
+      let loginAccessToken: string
 
-        setAccessToken(response.accessToken)
-        navigate('/saju/full-analysis')
+      try {
+        setSubmissionStep('login')
+        const response = await login({ email, password })
+        loginAccessToken = response.accessToken
+        setAccessToken(loginAccessToken)
       } catch {
         navigate('/login', {
           state: {
             message: '회원가입은 완료되었습니다. 다시 로그인해주세요.',
           },
         })
+        return
       }
+
+      await runSajuAnalysis(loginAccessToken)
     } finally {
-      setIsSubmitting(false)
+      setSubmissionStep('idle')
+    }
+  }
+
+  async function handleAnalysisRetry() {
+    if (isSubmitting || accessToken === null) {
+      return
+    }
+
+    setFormError('')
+
+    try {
+      await runSajuAnalysis(accessToken)
+    } finally {
+      setSubmissionStep('idle')
     }
   }
 
@@ -99,6 +149,44 @@ export function SignupForm() {
       password: undefined,
     }))
   }
+
+  if (analysisFailed) {
+    return (
+      <section className="signup">
+        <div className="signup__header">
+          <h1>사주 분석</h1>
+          <p>회원가입과 로그인은 완료되었습니다.</p>
+        </div>
+
+        <div className="signup__form">
+          {formError && (
+            <p className="signup__form-error" role="alert">
+              {formError}
+            </p>
+          )}
+
+          <button
+            type="button"
+            disabled={isSubmitting}
+            onClick={handleAnalysisRetry}
+          >
+            {submissionStep === 'analysis'
+              ? '사주 분석 생성 중...'
+              : '다시 시도'}
+          </button>
+        </div>
+      </section>
+    )
+  }
+
+  const submitButtonLabel =
+    submissionStep === 'signup'
+      ? '가입 중...'
+      : submissionStep === 'login'
+        ? '로그인 중...'
+        : submissionStep === 'analysis'
+          ? '사주 분석 생성 중...'
+          : '가입하기'
 
   return (
     <section className="signup">
@@ -166,7 +254,7 @@ export function SignupForm() {
         )}
 
         <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? '가입 중...' : '가입하기'}
+          {submitButtonLabel}
         </button>
       </form>
     </section>

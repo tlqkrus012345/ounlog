@@ -1,10 +1,10 @@
-package ounlog.saju.controller;
+package ounlog.saju.controller.request;
 
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import ounlog.saju.CalendarType;
-import ounlog.saju.service.SajuPreviewCommand;
+import ounlog.saju.entity.CalendarType;
+import ounlog.saju.service.command.SajuPreviewCommand;
 
 public record SajuPreviewRequest(
         @NotNull LocalDate birthDate,
