@@ -32,11 +32,16 @@ public class SajuAnalysis {
     @Column(nullable = false)
     private LocalDate birthDate;
 
+    @Column(nullable = false)
     private LocalTime birthTime;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private CalendarType calendarType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private Gender gender;
 
     @Lob
     @Column(nullable = false, columnDefinition = "LONGTEXT")
@@ -50,18 +55,25 @@ public class SajuAnalysis {
             LocalDate birthDate,
             LocalTime birthTime,
             CalendarType calendarType,
+            Gender gender,
             String result,
             Instant createdAt) {
         this.memberId = memberId;
         this.birthDate = birthDate;
         this.birthTime = birthTime;
         this.calendarType = calendarType;
+        this.gender = gender;
         this.result = result;
         this.createdAt = createdAt;
     }
 
     public static SajuAnalysis create(
-            Long memberId, LocalDate birthDate, LocalTime birthTime, CalendarType calendarType, String result) {
-        return new SajuAnalysis(memberId, birthDate, birthTime, calendarType, result, Instant.now());
+            Long memberId,
+            LocalDate birthDate,
+            LocalTime birthTime,
+            CalendarType calendarType,
+            Gender gender,
+            String result) {
+        return new SajuAnalysis(memberId, birthDate, birthTime, calendarType, gender, result, Instant.now());
     }
 }

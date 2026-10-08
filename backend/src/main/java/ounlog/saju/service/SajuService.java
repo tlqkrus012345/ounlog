@@ -36,7 +36,12 @@ public class SajuService {
 
         String sajuAnalysisResult = sajuAnalysisGenerator.generate(command);
         SajuAnalysis sajuAnalysis = SajuAnalysis.create(
-                memberId, command.birthDate(), command.birthTime(), command.calendarType(), sajuAnalysisResult);
+                memberId,
+                command.birthDate(),
+                command.birthTime(),
+                command.calendarType(),
+                command.gender(),
+                sajuAnalysisResult);
         try {
             sajuAnalysisRepository.saveAndFlush(sajuAnalysis);
             return new SajuAnalysisCreateResult(SajuAnalysisStatus.CREATED, sajuAnalysisResult);

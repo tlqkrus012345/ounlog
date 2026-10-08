@@ -3,6 +3,7 @@ package ounlog.saju;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
@@ -19,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import ounlog.saju.entity.CalendarType;
+import ounlog.saju.entity.Gender;
 import ounlog.saju.entity.SajuAnalysis;
 import ounlog.saju.repository.SajuAnalysisRepository;
 import ounlog.saju.service.SajuAnalysisGenerator;
@@ -53,7 +55,7 @@ class SajuServiceTest {
         // then
         assertThat(result.result()).isEqualTo("새 운세 결과");
         assertThat(result.sajuAnalysisStatus()).isEqualTo(SajuAnalysisStatus.CREATED);
-        then(sajuAnalysisRepository).should().saveAndFlush(any(SajuAnalysis.class));
+        then(sajuAnalysisRepository).should().saveAndFlush(argThat(analysis -> analysis.getGender() == Gender.MALE));
     }
 
     @DisplayName("분석 결과가 이미 있으면 생성하지 않고 기존 결과를 반환한다.")
@@ -111,10 +113,11 @@ class SajuServiceTest {
     }
 
     private SajuAnalysisCommand command() {
-        return new SajuAnalysisCommand(LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR);
+        return new SajuAnalysisCommand(LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR, Gender.MALE);
     }
 
     private SajuAnalysis analysis(String result) {
-        return SajuAnalysis.create(1L, LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR, result);
+        return SajuAnalysis.create(
+                1L, LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR, Gender.MALE, result);
     }
 }

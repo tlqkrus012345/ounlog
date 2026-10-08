@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import ounlog.config.MysqlTestContainerConfig;
 import ounlog.saju.entity.CalendarType;
+import ounlog.saju.entity.Gender;
 import ounlog.saju.entity.SajuAnalysis;
 import ounlog.saju.repository.SajuAnalysisRepository;
 
@@ -28,8 +29,8 @@ class SajuAnalysisRepositoryTest {
     @Test
     void findByMemberId() {
         // given
-        sajuAnalysisRepository.save(
-                SajuAnalysis.create(1L, LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR, "사주 분석 결과"));
+        sajuAnalysisRepository.save(SajuAnalysis.create(
+                1L, LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR, Gender.FEMALE, "사주 분석 결과"));
 
         // when
         Optional<SajuAnalysis> sajuAnalysis = sajuAnalysisRepository.findByMemberId(1L);
@@ -37,6 +38,7 @@ class SajuAnalysisRepositoryTest {
         // then
         SajuAnalysis result = sajuAnalysis.get();
         assertThat(result.getMemberId()).isEqualTo(1L);
+        assertThat(result.getGender()).isEqualTo(Gender.FEMALE);
         assertThat(result.getResult()).isEqualTo("사주 분석 결과");
     }
 
@@ -44,11 +46,11 @@ class SajuAnalysisRepositoryTest {
     @Test
     void saveWithDuplicatedMemberId() {
         // given
-        sajuAnalysisRepository.saveAndFlush(
-                SajuAnalysis.create(1L, LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR, "첫 번째 결과"));
+        sajuAnalysisRepository.saveAndFlush(SajuAnalysis.create(
+                1L, LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR, Gender.MALE, "첫 번째 결과"));
 
-        SajuAnalysis duplicated =
-                SajuAnalysis.create(1L, LocalDate.of(2026, 2, 1), LocalTime.of(11, 0), CalendarType.LUNAR, "두 번째 결과");
+        SajuAnalysis duplicated = SajuAnalysis.create(
+                1L, LocalDate.of(2026, 2, 1), LocalTime.of(11, 0), CalendarType.LUNAR, Gender.FEMALE, "두 번째 결과");
 
         // when & then
         assertThatThrownBy(() -> sajuAnalysisRepository.saveAndFlush(duplicated))

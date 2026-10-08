@@ -17,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import ounlog.config.MysqlTestContainerConfig;
 import ounlog.saju.entity.CalendarType;
+import ounlog.saju.entity.Gender;
 import ounlog.saju.repository.SajuAnalysisRepository;
 import ounlog.saju.service.SajuAnalysisStatus;
 import ounlog.saju.service.SajuService;
@@ -43,7 +44,7 @@ class SajuIntegrationTest {
         CountDownLatch startLatch = new CountDownLatch(1);
 
         SajuAnalysisCommand command =
-                new SajuAnalysisCommand(LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR);
+                new SajuAnalysisCommand(LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR, Gender.MALE);
 
         List<Future<SajuAnalysisCreateResult>> futures = new ArrayList<>();
         // when

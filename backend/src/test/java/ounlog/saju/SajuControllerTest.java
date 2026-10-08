@@ -1,6 +1,5 @@
 package ounlog.saju;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -27,6 +26,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import ounlog.auth.config.SecurityConfig;
 import ounlog.saju.controller.SajuController;
 import ounlog.saju.entity.CalendarType;
+import ounlog.saju.entity.Gender;
 import ounlog.saju.exception.SajuErrorCode;
 import ounlog.saju.exception.SajuException;
 import ounlog.saju.service.SajuAnalysisStatus;
@@ -59,7 +59,9 @@ class SajuControllerTest {
     @DisplayName("유효한 요청이면 Preview 요청 후 200 응답을 반환한다.")
     @Test
     void preview() throws Exception {
-        given(sajuService.preview(any(SajuPreviewCommand.class))).willReturn(new SajuPreviewResult("키워드", "요약 내용"));
+        SajuPreviewCommand command = new SajuPreviewCommand(
+                LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR, Gender.FEMALE);
+        given(sajuService.preview(command)).willReturn(new SajuPreviewResult("키워드", "요약 내용"));
 
         mockMvc.perform(post("/v1/saju/previews")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -67,12 +69,15 @@ class SajuControllerTest {
                                 {
                                   "birthDate": "2026-01-01",
                                   "birthTime": "10:00",
-                                  "calendarType": "SOLAR"
+                                  "calendarType": "SOLAR",
+                                  "gender": "FEMALE"
                                 }
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.keyword").exists())
                 .andExpect(jsonPath("$.summary").exists());
+
+        then(sajuService).should().preview(command);
     }
 
     @DisplayName("생년월일이 없으면 400을 반환한다.")
@@ -84,10 +89,47 @@ class SajuControllerTest {
                             {
                               "birthDate": null,
                               "birthTime": "14:32",
-                              "calendarType": "SOLAR"
+                              "calendarType": "SOLAR",
+                              "gender": "MALE"
                             }
                             """))
                 .andExpect(status().isBadRequest());
+    }
+
+    @DisplayName("출생시간이 없으면 Preview 요청에 400을 반환한다.")
+    @Test
+    void previewWithNullBirthTime() throws Exception {
+        mockMvc.perform(post("/v1/saju/previews")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                              "birthDate": "2026-01-01",
+                              "birthTime": null,
+                              "calendarType": "SOLAR",
+                              "gender": "MALE"
+                            }
+                            """))
+                .andExpect(status().isBadRequest());
+
+        then(sajuService).shouldHaveNoInteractions();
+    }
+
+    @DisplayName("성별이 없으면 Preview 요청에 400을 반환한다.")
+    @Test
+    void previewWithNullGender() throws Exception {
+        mockMvc.perform(post("/v1/saju/previews")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                              "birthDate": "2026-01-01",
+                              "birthTime": "10:00",
+                              "calendarType": "SOLAR",
+                              "gender": null
+                            }
+                            """))
+                .andExpect(status().isBadRequest());
+
+        then(sajuService).shouldHaveNoInteractions();
     }
 
     @DisplayName("유효한 요청일 경우 201을 반환한다.")
@@ -95,7 +137,7 @@ class SajuControllerTest {
     void sajuAnalysis() throws Exception {
         // given
         SajuAnalysisCommand command =
-                new SajuAnalysisCommand(LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR);
+                new SajuAnalysisCommand(LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR, Gender.MALE);
         given(jwtDecoder.decode("access-token")).willReturn(jwt(1L));
         given(sajuService.sajuAnalysis(command, 1L))
                 .willReturn(new SajuAnalysisCreateResult(SajuAnalysisStatus.CREATED, "운세 결과"));
@@ -108,7 +150,8 @@ class SajuControllerTest {
                                 {
                                   "birthDate": "2026-01-01",
                                   "birthTime": "10:00",
-                                  "calendarType": "SOLAR"
+                                  "calendarType": "SOLAR",
+                                  "gender": "MALE"
                                 }
                                 """))
                 // then
@@ -125,7 +168,7 @@ class SajuControllerTest {
     void sajuAnalysisWithExistingResult() throws Exception {
         // given
         SajuAnalysisCommand command =
-                new SajuAnalysisCommand(LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR);
+                new SajuAnalysisCommand(LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR, Gender.MALE);
         given(jwtDecoder.decode("access-token")).willReturn(jwt(1L));
         given(sajuService.sajuAnalysis(command, 1L))
                 .willReturn(new SajuAnalysisCreateResult(SajuAnalysisStatus.EXISTING, "기존 운세 결과"));
@@ -138,7 +181,8 @@ class SajuControllerTest {
                                 {
                                   "birthDate": "2026-01-01",
                                   "birthTime": "10:00",
-                                  "calendarType": "SOLAR"
+                                  "calendarType": "SOLAR",
+                                  "gender": "MALE"
                                 }
                                 """))
                 // then
@@ -163,7 +207,8 @@ class SajuControllerTest {
                                 {
                                   "birthDate": null,
                                   "birthTime": "10:00",
-                                  "calendarType": "SOLAR"
+                                  "calendarType": "SOLAR",
+                                  "gender": "MALE"
                                 }
                                 """))
 
@@ -175,6 +220,52 @@ class SajuControllerTest {
                 .andExpect(jsonPath("$.message").value("요청 값이 올바르지 않습니다."))
                 .andExpect(jsonPath("$.path").value("/v1/saju/analysis"))
                 .andExpect(jsonPath("$.errors[0].field").value("birthDate"))
+                .andExpect(jsonPath("$.errors[0].code").value("NotNull"));
+
+        then(sajuService).shouldHaveNoInteractions();
+    }
+
+    @DisplayName("출생시간이 없으면 사주 분석 요청에 400을 반환한다.")
+    @Test
+    void sajuAnalysisWithNullBirthTime() throws Exception {
+        given(jwtDecoder.decode("access-token")).willReturn(jwt(1L));
+
+        mockMvc.perform(post("/v1/saju/analysis")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer access-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "birthDate": "2026-01-01",
+                                  "birthTime": null,
+                                  "calendarType": "SOLAR",
+                                  "gender": "MALE"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("birthTime"))
+                .andExpect(jsonPath("$.errors[0].code").value("NotNull"));
+
+        then(sajuService).shouldHaveNoInteractions();
+    }
+
+    @DisplayName("성별이 없으면 사주 분석 요청에 400을 반환한다.")
+    @Test
+    void sajuAnalysisWithNullGender() throws Exception {
+        given(jwtDecoder.decode("access-token")).willReturn(jwt(1L));
+
+        mockMvc.perform(post("/v1/saju/analysis")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer access-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "birthDate": "2026-01-01",
+                                  "birthTime": "10:00",
+                                  "calendarType": "SOLAR",
+                                  "gender": null
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("gender"))
                 .andExpect(jsonPath("$.errors[0].code").value("NotNull"));
 
         then(sajuService).shouldHaveNoInteractions();
@@ -192,7 +283,8 @@ class SajuControllerTest {
                                 {
                                   "birthDate": "2026-01-01",
                                   "birthTime": "10:00",
-                                  "calendarType": "SOLAR"
+                                  "calendarType": "SOLAR",
+                                  "gender": "MALE"
                                 }
                                 """))
 
