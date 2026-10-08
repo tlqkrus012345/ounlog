@@ -76,7 +76,8 @@
   font-size: 16px;
 }
 
-.birth-date__calendar-selector {
+.birth-date__calendar-selector,
+.birth-date__gender-selector {
   display: grid;
   grid-template-columns: 1fr 1fr;
   padding: 4px;
@@ -84,7 +85,8 @@
   background-color: #eeeef3;
 }
 
-.birth-date__calendar-button {
+.birth-date__calendar-button,
+.birth-date__gender-button {
   height: 44px;
   border: 0;
   border-radius: 9px;
@@ -93,7 +95,8 @@
   cursor: pointer;
 }
 
-.birth-date__calendar-button--selected {
+.birth-date__calendar-button--selected,
+.birth-date__gender-button--selected {
   background-color: #ffffff;
   color: #5147e5;
   font-weight: 600;

@@ -9,12 +9,14 @@ const PREVIEW_REQUEST: SajuPreviewRequest = {
   birthDate: '1990-01-01',
   birthTime: '12:30',
   calendarType: 'SOLAR',
+  gender: 'MALE',
 }
 
 const ANALYSIS_REQUEST: SajuAnalysisRequest = {
   birthDate: '1995-03-21',
   birthTime: '14:30',
   calendarType: 'SOLAR',
+  gender: 'FEMALE',
 }
 
 const ACCESS_TOKEN = 'access-token'

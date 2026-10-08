@@ -5,8 +5,8 @@ import { clearSajuForm, getSajuForm, saveSajuForm } from './storage'
 const SAJU_FORM: SajuFormState = {
   birthDate: '1998-08-21',
   birthTime: '00:00',
-  birthTimeKnown: true,
   calendarType: 'SOLAR',
+  gender: 'MALE',
 }
 
 describe('saju storage', () => {
@@ -28,6 +28,41 @@ describe('saju storage', () => {
     saveSajuForm(SAJU_FORM)
 
     clearSajuForm()
+
+    expect(getSajuForm()).toBeNull()
+  })
+
+  it('gender가 없는 과거 저장 데이터는 null을 반환한다', () => {
+    sessionStorage.setItem(
+      'saju-form',
+      JSON.stringify({
+        birthDate: '1998-08-21',
+        birthTime: '14:32',
+        birthTimeKnown: true,
+        calendarType: 'SOLAR',
+      }),
+    )
+
+    expect(getSajuForm()).toBeNull()
+  })
+
+  it('birthTime이 null인 과거 저장 데이터는 null을 반환한다', () => {
+    sessionStorage.setItem(
+      'saju-form',
+      JSON.stringify({
+        birthDate: '1998-08-21',
+        birthTime: null,
+        birthTimeKnown: false,
+        calendarType: 'SOLAR',
+        gender: 'MALE',
+      }),
+    )
+
+    expect(getSajuForm()).toBeNull()
+  })
+
+  it('JSON 형식이 잘못된 저장 데이터는 null을 반환한다', () => {
+    sessionStorage.setItem('saju-form', '{invalid-json')
 
     expect(getSajuForm()).toBeNull()
   })

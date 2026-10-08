@@ -1,22 +1,25 @@
 export type CalendarType = 'SOLAR' | 'LUNAR'
+export type Gender = 'MALE' | 'FEMALE'
 
 export type SajuPreviewRequest = {
   birthDate: string
-  birthTime: string | null
+  birthTime: string
   calendarType: CalendarType
+  gender: Gender
 }
 
 export type SajuAnalysisRequest = {
   birthDate: string
-  birthTime: string | null
+  birthTime: string
   calendarType: CalendarType
+  gender: Gender
 }
 
 export type SajuFormState = {
   birthDate: string
-  birthTime: string | null
-  birthTimeKnown: boolean
+  birthTime: string
   calendarType: CalendarType
+  gender: Gender
 }
 
 export type SajuPreviewResponse = {

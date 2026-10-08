@@ -77,7 +77,12 @@ function ConfirmPage() {
 
           <div className="confirm__row">
             <span>출생시간</span>
-            <strong>{state.birthTimeKnown ? state.birthTime : '모름'}</strong>
+            <strong>{state.birthTime}</strong>
+          </div>
+
+          <div className="confirm__row">
+            <span>성별</span>
+            <strong>{state.gender === 'MALE' ? '남성' : '여성'}</strong>
           </div>
         </div>
 

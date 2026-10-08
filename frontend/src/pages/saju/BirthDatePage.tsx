@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getSajuForm } from '../../features/saju/storage'
-import type { CalendarType } from '../../features/saju/types'
+import type { CalendarType, Gender } from '../../features/saju/types'
 import './BirthDatePage.css'
 
 function BirthDatePage() {
@@ -12,8 +12,11 @@ function BirthDatePage() {
   const [calendarType, setCalendarType] = useState<CalendarType>(
     storedForm?.calendarType ?? 'SOLAR',
   )
+  const [gender, setGender] = useState<Gender | null>(
+    storedForm?.gender ?? null,
+  )
 
-  const canProceed = birthDate !== ''
+  const canProceed = birthDate !== '' && gender !== null
 
   return (
     <main className="birth-date">
@@ -81,6 +84,36 @@ function BirthDatePage() {
               </button>
             </div>
           </div>
+
+          <div className="birth-date__field">
+            <span className="birth-date__label">성별</span>
+
+            <div className="birth-date__gender-selector">
+              <button
+                type="button"
+                className={
+                  gender === 'MALE'
+                    ? 'birth-date__gender-button birth-date__gender-button--selected'
+                    : 'birth-date__gender-button'
+                }
+                onClick={() => setGender('MALE')}
+              >
+                남성
+              </button>
+
+              <button
+                type="button"
+                className={
+                  gender === 'FEMALE'
+                    ? 'birth-date__gender-button birth-date__gender-button--selected'
+                    : 'birth-date__gender-button'
+                }
+                onClick={() => setGender('FEMALE')}
+              >
+                여성
+              </button>
+            </div>
+          </div>
         </div>
 
         <button
@@ -92,6 +125,7 @@ function BirthDatePage() {
               state: {
                 birthDate,
                 calendarType,
+                gender,
               },
             })
           }

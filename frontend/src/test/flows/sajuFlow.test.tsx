@@ -14,6 +14,7 @@ describe('사주 분석 사용자 흐름', () => {
           birthDate: '1998-08-21',
           birthTime: '14:32',
           calendarType: 'LUNAR',
+          gender: 'FEMALE',
         })
 
         return HttpResponse.json({
@@ -34,6 +35,7 @@ describe('사주 분석 사용자 흐름', () => {
       target: { value: '1998-08-21' },
     })
     await user.click(screen.getByRole('button', { name: '음력' }))
+    await user.click(screen.getByRole('button', { name: '여성' }))
     await user.click(screen.getByRole('button', { name: '다음' }))
 
     fireEvent.change(screen.getByLabelText('출생시간'), {
@@ -45,6 +47,7 @@ describe('사주 분석 사용자 흐름', () => {
     expect(screen.getByText('1998-08-21')).toBeInTheDocument()
     expect(screen.getByText('음력')).toBeInTheDocument()
     expect(screen.getByText('14:32')).toBeInTheDocument()
+    expect(screen.getByText('여성')).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: '분석 시작하기' }))
 

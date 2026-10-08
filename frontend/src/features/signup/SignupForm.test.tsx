@@ -17,8 +17,8 @@ const VALID_PASSWORD = 'password123'
 const SAJU_FORM: SajuFormState = {
   birthDate: '1995-03-21',
   birthTime: '14:30',
-  birthTimeKnown: true,
   calendarType: 'SOLAR',
+  gender: 'MALE',
 }
 
 interface RenderFilledSignupFormOptions {
@@ -130,6 +130,7 @@ describe('SignupForm', () => {
           birthDate: '1995-03-21',
           birthTime: '14:30',
           calendarType: 'SOLAR',
+          gender: 'MALE',
         })
 
         return HttpResponse.json(

@@ -13,8 +13,8 @@ vi.mock('../../features/saju/api')
 const FORM_STATE: SajuFormState = {
   birthDate: '1998-08-21',
   birthTime: '14:32',
-  birthTimeKnown: true,
   calendarType: 'SOLAR',
+  gender: 'FEMALE',
 }
 
 function LocationDisplay() {
@@ -65,6 +65,7 @@ describe('ConfirmPage', () => {
       birthDate: '1998-08-21',
       birthTime: '14:32',
       calendarType: 'SOLAR',
+      gender: 'FEMALE',
     })
     expect(await screen.findByText('전환')).toBeInTheDocument()
     expect(screen.getByTestId('location')).toHaveTextContent('/saju/preview')
@@ -97,6 +98,7 @@ describe('ConfirmPage', () => {
     expect(screen.getByText('1998-08-21')).toBeInTheDocument()
     expect(screen.getByText('양력')).toBeInTheDocument()
     expect(screen.getByText('14:32')).toBeInTheDocument()
+    expect(screen.getByText('여성')).toBeInTheDocument()
   })
 
   it('location.state와 저장 데이터가 모두 없으면 사주 입력 화면으로 이동한다', () => {
