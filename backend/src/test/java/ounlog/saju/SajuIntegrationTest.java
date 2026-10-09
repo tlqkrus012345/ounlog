@@ -43,8 +43,8 @@ class SajuIntegrationTest {
         CountDownLatch readyLatch = new CountDownLatch(threadCount);
         CountDownLatch startLatch = new CountDownLatch(1);
 
-        SajuAnalysisCommand command =
-                new SajuAnalysisCommand(LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR, Gender.MALE);
+        SajuAnalysisCommand command = new SajuAnalysisCommand(
+                LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR, Gender.MALE, false);
 
         List<Future<SajuAnalysisCreateResult>> futures = new ArrayList<>();
         // when

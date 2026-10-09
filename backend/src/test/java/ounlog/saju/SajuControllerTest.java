@@ -60,7 +60,7 @@ class SajuControllerTest {
     @Test
     void preview() throws Exception {
         SajuPreviewCommand command = new SajuPreviewCommand(
-                LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR, Gender.FEMALE);
+                LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR, Gender.FEMALE, false);
         given(sajuService.preview(command)).willReturn(new SajuPreviewResult("키워드", "요약 내용"));
 
         mockMvc.perform(post("/v1/saju/previews")
@@ -70,7 +70,8 @@ class SajuControllerTest {
                                   "birthDate": "2026-01-01",
                                   "birthTime": "10:00",
                                   "calendarType": "SOLAR",
-                                  "gender": "FEMALE"
+                                  "gender": "FEMALE",
+                                  "isLeapMonth": false
                                 }
                                 """))
                 .andExpect(status().isOk())
@@ -90,7 +91,8 @@ class SajuControllerTest {
                               "birthDate": null,
                               "birthTime": "14:32",
                               "calendarType": "SOLAR",
-                              "gender": "MALE"
+                              "gender": "MALE",
+                              "isLeapMonth": false
                             }
                             """))
                 .andExpect(status().isBadRequest());
@@ -106,7 +108,8 @@ class SajuControllerTest {
                               "birthDate": "2026-01-01",
                               "birthTime": null,
                               "calendarType": "SOLAR",
-                              "gender": "MALE"
+                              "gender": "MALE",
+                              "isLeapMonth": false
                             }
                             """))
                 .andExpect(status().isBadRequest());
@@ -124,7 +127,47 @@ class SajuControllerTest {
                               "birthDate": "2026-01-01",
                               "birthTime": "10:00",
                               "calendarType": "SOLAR",
-                              "gender": null
+                              "gender": null,
+                              "isLeapMonth": false
+                            }
+                            """))
+                .andExpect(status().isBadRequest());
+
+        then(sajuService).shouldHaveNoInteractions();
+    }
+
+    @DisplayName("윤달 여부가 누락되면 Preview 요청에 400을 반환한다.")
+    @Test
+    void previewWithoutLeapMonth() throws Exception {
+        mockMvc.perform(post("/v1/saju/previews")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                              "birthDate": "2026-01-01",
+                              "birthTime": "10:00",
+                              "calendarType": "LUNAR",
+                              "gender": "MALE"
+                            }
+                            """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("isLeapMonth"))
+                .andExpect(jsonPath("$.errors[0].code").value("NotNull"));
+
+        then(sajuService).shouldHaveNoInteractions();
+    }
+
+    @DisplayName("양력을 윤달로 요청하면 Preview 요청에 400을 반환한다.")
+    @Test
+    void previewWithSolarLeapMonth() throws Exception {
+        mockMvc.perform(post("/v1/saju/previews")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                              "birthDate": "2026-01-01",
+                              "birthTime": "10:00",
+                              "calendarType": "SOLAR",
+                              "gender": "MALE",
+                              "isLeapMonth": true
                             }
                             """))
                 .andExpect(status().isBadRequest());
@@ -136,8 +179,8 @@ class SajuControllerTest {
     @Test
     void sajuAnalysis() throws Exception {
         // given
-        SajuAnalysisCommand command =
-                new SajuAnalysisCommand(LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR, Gender.MALE);
+        SajuAnalysisCommand command = new SajuAnalysisCommand(
+                LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR, Gender.MALE, false);
         given(jwtDecoder.decode("access-token")).willReturn(jwt(1L));
         given(sajuService.sajuAnalysis(command, 1L))
                 .willReturn(new SajuAnalysisCreateResult(SajuAnalysisStatus.CREATED, "운세 결과"));
@@ -151,7 +194,8 @@ class SajuControllerTest {
                                   "birthDate": "2026-01-01",
                                   "birthTime": "10:00",
                                   "calendarType": "SOLAR",
-                                  "gender": "MALE"
+                                  "gender": "MALE",
+                                  "isLeapMonth": false
                                 }
                                 """))
                 // then
@@ -167,8 +211,8 @@ class SajuControllerTest {
     @Test
     void sajuAnalysisWithExistingResult() throws Exception {
         // given
-        SajuAnalysisCommand command =
-                new SajuAnalysisCommand(LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR, Gender.MALE);
+        SajuAnalysisCommand command = new SajuAnalysisCommand(
+                LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR, Gender.MALE, false);
         given(jwtDecoder.decode("access-token")).willReturn(jwt(1L));
         given(sajuService.sajuAnalysis(command, 1L))
                 .willReturn(new SajuAnalysisCreateResult(SajuAnalysisStatus.EXISTING, "기존 운세 결과"));
@@ -182,7 +226,8 @@ class SajuControllerTest {
                                   "birthDate": "2026-01-01",
                                   "birthTime": "10:00",
                                   "calendarType": "SOLAR",
-                                  "gender": "MALE"
+                                  "gender": "MALE",
+                                  "isLeapMonth": false
                                 }
                                 """))
                 // then
@@ -208,7 +253,8 @@ class SajuControllerTest {
                                   "birthDate": null,
                                   "birthTime": "10:00",
                                   "calendarType": "SOLAR",
-                                  "gender": "MALE"
+                                  "gender": "MALE",
+                                  "isLeapMonth": false
                                 }
                                 """))
 
@@ -238,7 +284,8 @@ class SajuControllerTest {
                                   "birthDate": "2026-01-01",
                                   "birthTime": null,
                                   "calendarType": "SOLAR",
-                                  "gender": "MALE"
+                                  "gender": "MALE",
+                                  "isLeapMonth": false
                                 }
                                 """))
                 .andExpect(status().isBadRequest())
@@ -261,12 +308,58 @@ class SajuControllerTest {
                                   "birthDate": "2026-01-01",
                                   "birthTime": "10:00",
                                   "calendarType": "SOLAR",
-                                  "gender": null
+                                  "gender": null,
+                                  "isLeapMonth": false
                                 }
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors[0].field").value("gender"))
                 .andExpect(jsonPath("$.errors[0].code").value("NotNull"));
+
+        then(sajuService).shouldHaveNoInteractions();
+    }
+
+    @DisplayName("윤달 여부가 누락되면 사주 분석 요청에 400을 반환한다.")
+    @Test
+    void sajuAnalysisWithoutLeapMonth() throws Exception {
+        given(jwtDecoder.decode("access-token")).willReturn(jwt(1L));
+
+        mockMvc.perform(post("/v1/saju/analysis")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer access-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "birthDate": "2026-01-01",
+                                  "birthTime": "10:00",
+                                  "calendarType": "LUNAR",
+                                  "gender": "MALE"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("isLeapMonth"))
+                .andExpect(jsonPath("$.errors[0].code").value("NotNull"));
+
+        then(sajuService).shouldHaveNoInteractions();
+    }
+
+    @DisplayName("양력을 윤달로 요청하면 사주 분석 요청에 400을 반환한다.")
+    @Test
+    void sajuAnalysisWithSolarLeapMonth() throws Exception {
+        given(jwtDecoder.decode("access-token")).willReturn(jwt(1L));
+
+        mockMvc.perform(post("/v1/saju/analysis")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer access-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "birthDate": "2026-01-01",
+                                  "birthTime": "10:00",
+                                  "calendarType": "SOLAR",
+                                  "gender": "MALE",
+                                  "isLeapMonth": true
+                                }
+                                """))
+                .andExpect(status().isBadRequest());
 
         then(sajuService).shouldHaveNoInteractions();
     }
@@ -284,7 +377,8 @@ class SajuControllerTest {
                                   "birthDate": "2026-01-01",
                                   "birthTime": "10:00",
                                   "calendarType": "SOLAR",
-                                  "gender": "MALE"
+                                  "gender": "MALE",
+                                  "isLeapMonth": false
                                 }
                                 """))
 

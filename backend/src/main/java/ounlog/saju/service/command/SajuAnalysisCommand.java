@@ -5,4 +5,5 @@ import java.time.LocalTime;
 import ounlog.saju.entity.CalendarType;
 import ounlog.saju.entity.Gender;
 
-public record SajuAnalysisCommand(LocalDate birthDate, LocalTime birthTime, CalendarType calendarType, Gender gender) {}
+public record SajuAnalysisCommand(
+        LocalDate birthDate, LocalTime birthTime, CalendarType calendarType, Gender gender, boolean isLeapMonth) {}

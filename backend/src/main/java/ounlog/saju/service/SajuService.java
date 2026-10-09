@@ -41,6 +41,7 @@ public class SajuService {
                 command.birthTime(),
                 command.calendarType(),
                 command.gender(),
+                command.isLeapMonth(),
                 sajuAnalysisResult);
         try {
             sajuAnalysisRepository.saveAndFlush(sajuAnalysis);

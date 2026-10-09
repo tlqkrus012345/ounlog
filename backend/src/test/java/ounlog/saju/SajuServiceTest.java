@@ -55,7 +55,9 @@ class SajuServiceTest {
         // then
         assertThat(result.result()).isEqualTo("새 운세 결과");
         assertThat(result.sajuAnalysisStatus()).isEqualTo(SajuAnalysisStatus.CREATED);
-        then(sajuAnalysisRepository).should().saveAndFlush(argThat(analysis -> analysis.getGender() == Gender.MALE));
+        then(sajuAnalysisRepository)
+                .should()
+                .saveAndFlush(argThat(analysis -> analysis.getGender() == Gender.MALE && !analysis.isLeapMonth()));
     }
 
     @DisplayName("분석 결과가 이미 있으면 생성하지 않고 기존 결과를 반환한다.")
@@ -113,11 +115,12 @@ class SajuServiceTest {
     }
 
     private SajuAnalysisCommand command() {
-        return new SajuAnalysisCommand(LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR, Gender.MALE);
+        return new SajuAnalysisCommand(
+                LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR, Gender.MALE, false);
     }
 
     private SajuAnalysis analysis(String result) {
         return SajuAnalysis.create(
-                1L, LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR, Gender.MALE, result);
+                1L, LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR, Gender.MALE, false, result);
     }
 }

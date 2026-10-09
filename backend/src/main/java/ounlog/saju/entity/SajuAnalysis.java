@@ -43,6 +43,9 @@ public class SajuAnalysis {
     @Column(nullable = false, length = 10)
     private Gender gender;
 
+    @Column(nullable = false)
+    private boolean isLeapMonth;
+
     @Lob
     @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String result;
@@ -56,6 +59,7 @@ public class SajuAnalysis {
             LocalTime birthTime,
             CalendarType calendarType,
             Gender gender,
+            boolean isLeapMonth,
             String result,
             Instant createdAt) {
         this.memberId = memberId;
@@ -63,6 +67,7 @@ public class SajuAnalysis {
         this.birthTime = birthTime;
         this.calendarType = calendarType;
         this.gender = gender;
+        this.isLeapMonth = isLeapMonth;
         this.result = result;
         this.createdAt = createdAt;
     }
@@ -73,7 +78,9 @@ public class SajuAnalysis {
             LocalTime birthTime,
             CalendarType calendarType,
             Gender gender,
+            boolean isLeapMonth,
             String result) {
-        return new SajuAnalysis(memberId, birthDate, birthTime, calendarType, gender, result, Instant.now());
+        return new SajuAnalysis(
+                memberId, birthDate, birthTime, calendarType, gender, isLeapMonth, result, Instant.now());
     }
 }
