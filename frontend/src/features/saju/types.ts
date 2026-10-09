@@ -6,6 +6,7 @@ export type SajuPreviewRequest = {
   birthTime: string
   calendarType: CalendarType
   gender: Gender
+  isLeapMonth: boolean
 }
 
 export type SajuAnalysisRequest = {
@@ -13,6 +14,7 @@ export type SajuAnalysisRequest = {
   birthTime: string
   calendarType: CalendarType
   gender: Gender
+  isLeapMonth: boolean
 }
 
 export type SajuFormState = {
@@ -20,6 +22,7 @@ export type SajuFormState = {
   birthTime: string
   calendarType: CalendarType
   gender: Gender
+  isLeapMonth: boolean
 }
 
 export type SajuPreviewResponse = {

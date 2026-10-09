@@ -10,6 +10,7 @@ const PREVIEW_REQUEST: SajuPreviewRequest = {
   birthTime: '12:30',
   calendarType: 'SOLAR',
   gender: 'MALE',
+  isLeapMonth: false,
 }
 
 const ANALYSIS_REQUEST: SajuAnalysisRequest = {
@@ -17,6 +18,7 @@ const ANALYSIS_REQUEST: SajuAnalysisRequest = {
   birthTime: '14:30',
   calendarType: 'SOLAR',
   gender: 'FEMALE',
+  isLeapMonth: false,
 }
 
 const ACCESS_TOKEN = 'access-token'

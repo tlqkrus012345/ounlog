@@ -15,6 +15,7 @@ const FORM_STATE: SajuFormState = {
   birthTime: '14:32',
   calendarType: 'SOLAR',
   gender: 'FEMALE',
+  isLeapMonth: false,
 }
 
 function LocationDisplay() {
@@ -66,6 +67,7 @@ describe('ConfirmPage', () => {
       birthTime: '14:32',
       calendarType: 'SOLAR',
       gender: 'FEMALE',
+      isLeapMonth: false,
     })
     expect(await screen.findByText('전환')).toBeInTheDocument()
     expect(screen.getByTestId('location')).toHaveTextContent('/saju/preview')

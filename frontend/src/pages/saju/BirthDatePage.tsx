@@ -15,8 +15,23 @@ function BirthDatePage() {
   const [gender, setGender] = useState<Gender | null>(
     storedForm?.gender ?? null,
   )
+  const [isLeapMonth, setIsLeapMonth] = useState<boolean | null>(
+    storedForm?.calendarType === 'LUNAR' ? storedForm.isLeapMonth : false,
+  )
 
-  const canProceed = birthDate !== '' && gender !== null
+  const canProceed =
+    birthDate !== '' &&
+    gender !== null &&
+    (calendarType === 'SOLAR' || isLeapMonth !== null)
+
+  const selectCalendarType = (nextCalendarType: CalendarType) => {
+    if (nextCalendarType === calendarType) {
+      return
+    }
+
+    setCalendarType(nextCalendarType)
+    setIsLeapMonth(nextCalendarType === 'SOLAR' ? false : null)
+  }
 
   return (
     <main className="birth-date">
@@ -66,7 +81,7 @@ function BirthDatePage() {
                     ? 'birth-date__calendar-button birth-date__calendar-button--selected'
                     : 'birth-date__calendar-button'
                 }
-                onClick={() => setCalendarType('SOLAR')}
+                onClick={() => selectCalendarType('SOLAR')}
               >
                 양력
               </button>
@@ -78,12 +93,44 @@ function BirthDatePage() {
                     ? 'birth-date__calendar-button birth-date__calendar-button--selected'
                     : 'birth-date__calendar-button'
                 }
-                onClick={() => setCalendarType('LUNAR')}
+                onClick={() => selectCalendarType('LUNAR')}
               >
                 음력
               </button>
             </div>
           </div>
+
+          {calendarType === 'LUNAR' && (
+            <div className="birth-date__field">
+              <span className="birth-date__label">음력 월 구분</span>
+
+              <div className="birth-date__leap-month-selector">
+                <button
+                  type="button"
+                  className={
+                    isLeapMonth === false
+                      ? 'birth-date__leap-month-button birth-date__leap-month-button--selected'
+                      : 'birth-date__leap-month-button'
+                  }
+                  onClick={() => setIsLeapMonth(false)}
+                >
+                  평달
+                </button>
+
+                <button
+                  type="button"
+                  className={
+                    isLeapMonth === true
+                      ? 'birth-date__leap-month-button birth-date__leap-month-button--selected'
+                      : 'birth-date__leap-month-button'
+                  }
+                  onClick={() => setIsLeapMonth(true)}
+                >
+                  윤달
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="birth-date__field">
             <span className="birth-date__label">성별</span>
@@ -126,6 +173,7 @@ function BirthDatePage() {
                 birthDate,
                 calendarType,
                 gender,
+                isLeapMonth: isLeapMonth ?? false,
               },
             })
           }

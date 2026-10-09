@@ -18,12 +18,13 @@ function BirthTimePage() {
   if (
     !previousState?.birthDate ||
     !previousState.calendarType ||
-    !previousState.gender
+    !previousState.gender ||
+    typeof previousState.isLeapMonth !== 'boolean'
   ) {
     return <Navigate to="/saju" replace />
   }
 
-  const { birthDate, calendarType, gender } = previousState
+  const { birthDate, calendarType, gender, isLeapMonth } = previousState
 
   const handleNext = () => {
     const form: SajuFormState = {
@@ -31,6 +32,7 @@ function BirthTimePage() {
       calendarType,
       birthTime,
       gender,
+      isLeapMonth,
     }
 
     saveSajuForm(form)

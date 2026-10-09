@@ -15,7 +15,9 @@ function isSajuFormState(value: unknown): value is SajuFormState {
     typeof form.birthTime === 'string' &&
     form.birthTime !== '' &&
     (form.calendarType === 'SOLAR' || form.calendarType === 'LUNAR') &&
-    (form.gender === 'MALE' || form.gender === 'FEMALE')
+    (form.gender === 'MALE' || form.gender === 'FEMALE') &&
+    typeof form.isLeapMonth === 'boolean' &&
+    (form.calendarType === 'LUNAR' || !form.isLeapMonth)
   )
 }
 

@@ -75,6 +75,13 @@ function ConfirmPage() {
             <strong>{state.calendarType === 'SOLAR' ? '양력' : '음력'}</strong>
           </div>
 
+          {state.calendarType === 'LUNAR' && (
+            <div className="confirm__row">
+              <span>음력 월 구분</span>
+              <strong>{state.isLeapMonth ? '윤달' : '평달'}</strong>
+            </div>
+          )}
+
           <div className="confirm__row">
             <span>출생시간</span>
             <strong>{state.birthTime}</strong>

@@ -10,6 +10,7 @@ export function toSajuPreviewRequest(form: SajuFormState): SajuPreviewRequest {
     birthTime: form.birthTime,
     calendarType: form.calendarType,
     gender: form.gender,
+    isLeapMonth: form.isLeapMonth,
   }
 }
 
@@ -21,5 +22,6 @@ export function toSajuAnalysisRequest(
     birthTime: form.birthTime,
     calendarType: form.calendarType,
     gender: form.gender,
+    isLeapMonth: form.isLeapMonth,
   }
 }

@@ -15,6 +15,7 @@ describe('사주 분석 사용자 흐름', () => {
           birthTime: '14:32',
           calendarType: 'LUNAR',
           gender: 'FEMALE',
+          isLeapMonth: true,
         })
 
         return HttpResponse.json({
@@ -35,6 +36,7 @@ describe('사주 분석 사용자 흐름', () => {
       target: { value: '1998-08-21' },
     })
     await user.click(screen.getByRole('button', { name: '음력' }))
+    await user.click(screen.getByRole('button', { name: '윤달' }))
     await user.click(screen.getByRole('button', { name: '여성' }))
     await user.click(screen.getByRole('button', { name: '다음' }))
 
@@ -46,6 +48,7 @@ describe('사주 분석 사용자 흐름', () => {
     expect(screen.getByText('입력한 정보가 맞나요?')).toBeInTheDocument()
     expect(screen.getByText('1998-08-21')).toBeInTheDocument()
     expect(screen.getByText('음력')).toBeInTheDocument()
+    expect(screen.getByText('윤달')).toBeInTheDocument()
     expect(screen.getByText('14:32')).toBeInTheDocument()
     expect(screen.getByText('여성')).toBeInTheDocument()
 

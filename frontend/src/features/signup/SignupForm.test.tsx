@@ -19,6 +19,7 @@ const SAJU_FORM: SajuFormState = {
   birthTime: '14:30',
   calendarType: 'SOLAR',
   gender: 'MALE',
+  isLeapMonth: false,
 }
 
 interface RenderFilledSignupFormOptions {
@@ -131,6 +132,7 @@ describe('SignupForm', () => {
           birthTime: '14:30',
           calendarType: 'SOLAR',
           gender: 'MALE',
+          isLeapMonth: false,
         })
 
         return HttpResponse.json(

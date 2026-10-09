@@ -8,11 +8,12 @@ import BirthTimePage from './BirthTimePage'
 
 const PREVIOUS_STATE: Pick<
   SajuFormState,
-  'birthDate' | 'calendarType' | 'gender'
+  'birthDate' | 'calendarType' | 'gender' | 'isLeapMonth'
 > = {
   birthDate: '1998-08-21',
   calendarType: 'SOLAR',
   gender: 'FEMALE',
+  isLeapMonth: false,
 }
 
 function StateDisplay() {
@@ -52,6 +53,7 @@ describe('BirthTimePage', () => {
         calendarType: 'SOLAR',
         birthTime: '14:32',
         gender: 'FEMALE',
+        isLeapMonth: false,
       }),
     )
     expect(getSajuForm()).toEqual({

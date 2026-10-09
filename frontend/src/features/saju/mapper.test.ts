@@ -8,6 +8,7 @@ describe('toSajuAnalysisRequest', () => {
       birthTime: '14:30',
       calendarType: 'SOLAR',
       gender: 'FEMALE',
+      isLeapMonth: false,
     })
 
     expect(request).toEqual({
@@ -15,6 +16,7 @@ describe('toSajuAnalysisRequest', () => {
       birthTime: '14:30',
       calendarType: 'SOLAR',
       gender: 'FEMALE',
+      isLeapMonth: false,
     })
   })
 
@@ -24,9 +26,11 @@ describe('toSajuAnalysisRequest', () => {
       birthTime: '00:00',
       calendarType: 'LUNAR',
       gender: 'MALE',
+      isLeapMonth: true,
     })
 
     expect(request.birthTime).toBe('00:00')
+    expect(request.isLeapMonth).toBe(true)
   })
 })
 
@@ -37,6 +41,7 @@ describe('toSajuPreviewRequest', () => {
       birthTime: '14:30',
       calendarType: 'SOLAR',
       gender: 'MALE',
+      isLeapMonth: false,
     })
 
     expect(request).toEqual({
@@ -44,6 +49,7 @@ describe('toSajuPreviewRequest', () => {
       birthTime: '14:30',
       calendarType: 'SOLAR',
       gender: 'MALE',
+      isLeapMonth: false,
     })
   })
 })
