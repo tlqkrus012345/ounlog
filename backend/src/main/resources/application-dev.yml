@@ -16,6 +16,10 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+
 
 jwt:
   access-token-ttl: 15m
