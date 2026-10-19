@@ -1,8 +1,9 @@
 package ounlog.saju.service;
 
-import ounlog.saju.service.command.SajuAnalysisCommand;
+import ounlog.saju.entity.SajuInterpretation;
+import ounlog.saju.external.manseryeok.ManseryeokCalculationResult;
 
 public interface SajuAnalysisGenerator {
 
-    String generate(SajuAnalysisCommand command);
+    SajuInterpretation generate(ManseryeokCalculationResult result);
 }

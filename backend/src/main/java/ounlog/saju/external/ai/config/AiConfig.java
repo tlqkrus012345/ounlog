@@ -1,4 +1,4 @@
-package ounlog.saju.external.config;
+package ounlog.saju.external.ai.config;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.context.annotation.Bean;
@@ -12,5 +12,3 @@ public class AiConfig {
         return builder.build();
     }
 }
-
-

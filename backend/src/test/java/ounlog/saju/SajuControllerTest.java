@@ -183,7 +183,11 @@ class SajuControllerTest {
                 LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR, Gender.MALE, false);
         given(jwtDecoder.decode("access-token")).willReturn(jwt(1L));
         given(sajuService.sajuAnalysis(command, 1L))
-                .willReturn(new SajuAnalysisCreateResult(SajuAnalysisStatus.CREATED, "운세 결과"));
+                .willReturn(new SajuAnalysisCreateResult(
+                        SajuAnalysisStatus.CREATED,
+                        SajuTestFixtures.interpretation("운세 결과"),
+                        null,
+                        LocalDate.of(2026, 10, 17)));
 
         // when
         mockMvc.perform(post("/v1/saju/analysis")
@@ -202,7 +206,15 @@ class SajuControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.sajuAnalysisId").doesNotExist())
-                .andExpect(jsonPath("$.result").value("운세 결과"));
+                .andExpect(jsonPath("$.result.fiveElements.content").value("운세 결과"))
+                .andExpect(jsonPath("$.result.annualOverview.content").value("운세 결과"))
+                .andExpect(jsonPath("$.result.personality.content").value("운세 결과"))
+                .andExpect(jsonPath("$.result.career.content").value("운세 결과"))
+                .andExpect(jsonPath("$.result.wealth.content").value("운세 결과"))
+                .andExpect(jsonPath("$.result.relationship.content").value("운세 결과"))
+                .andExpect(jsonPath("$.result.currentLuck.content").value("운세 결과"))
+                .andExpect(jsonPath("$.asOfDate").value("2026-10-17"))
+                .andExpect(jsonPath("$.calculationSnapshot").doesNotExist());
 
         then(sajuService).should().sajuAnalysis(command, 1L);
     }
@@ -215,7 +227,11 @@ class SajuControllerTest {
                 LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR, Gender.MALE, false);
         given(jwtDecoder.decode("access-token")).willReturn(jwt(1L));
         given(sajuService.sajuAnalysis(command, 1L))
-                .willReturn(new SajuAnalysisCreateResult(SajuAnalysisStatus.EXISTING, "기존 운세 결과"));
+                .willReturn(new SajuAnalysisCreateResult(
+                        SajuAnalysisStatus.EXISTING,
+                        SajuTestFixtures.interpretation("기존 운세 결과"),
+                        null,
+                        LocalDate.of(2026, 10, 17)));
 
         // when
         mockMvc.perform(post("/v1/saju/analysis")
@@ -233,7 +249,8 @@ class SajuControllerTest {
                 // then
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.result").value("기존 운세 결과"));
+                .andExpect(jsonPath("$.result.fiveElements.content").value("기존 운세 결과"))
+                .andExpect(jsonPath("$.asOfDate").value("2026-10-17"));
 
         then(sajuService).should().sajuAnalysis(command, 1L);
     }
@@ -393,7 +410,9 @@ class SajuControllerTest {
     void getSajuAnalysis() throws Exception {
         // given
         given(jwtDecoder.decode("access-token")).willReturn(jwt(1L));
-        given(sajuService.getSajuAnalysis(1L)).willReturn(new SajuAnalysisResult("저장된 운세 결과"));
+        given(sajuService.getSajuAnalysis(1L))
+                .willReturn(new SajuAnalysisResult(
+                        SajuTestFixtures.interpretation("저장된 운세 결과"), null, LocalDate.of(2026, 10, 17)));
 
         // when
         mockMvc.perform(get("/v1/saju/analysis").header(HttpHeaders.AUTHORIZATION, "Bearer access-token"))
@@ -402,7 +421,8 @@ class SajuControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.sajuAnalysisId").doesNotExist())
-                .andExpect(jsonPath("$.result").value("저장된 운세 결과"));
+                .andExpect(jsonPath("$.result.fiveElements.content").value("저장된 운세 결과"))
+                .andExpect(jsonPath("$.asOfDate").value("2026-10-17"));
 
         then(sajuService).should().getSajuAnalysis(1L);
     }
@@ -438,6 +458,19 @@ class SajuControllerTest {
                 .andExpect(status().isUnauthorized());
 
         then(sajuService).shouldHaveNoInteractions();
+    }
+
+    @DisplayName("구형 분석 결과는 문단을 임의 생성하지 않고 별도 필드로 반환한다.")
+    @Test
+    void getLegacyAnalysis() throws Exception {
+        given(jwtDecoder.decode("access-token")).willReturn(jwt(1L));
+        given(sajuService.getSajuAnalysis(1L)).willReturn(new SajuAnalysisResult(null, "구형 결과", null));
+
+        mockMvc.perform(get("/v1/saju/analysis").header(HttpHeaders.AUTHORIZATION, "Bearer access-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.legacyResult").value("구형 결과"))
+                .andExpect(jsonPath("$.result").isEmpty())
+                .andExpect(jsonPath("$.asOfDate").isEmpty());
     }
 
     private Jwt jwt(long memberId) {

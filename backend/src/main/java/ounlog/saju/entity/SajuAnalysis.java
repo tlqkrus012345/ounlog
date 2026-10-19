@@ -12,9 +12,12 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "saju_analysis")
@@ -47,8 +50,16 @@ public class SajuAnalysis {
     private boolean isLeapMonth;
 
     @Lob
-    @Column(nullable = false, columnDefinition = "LONGTEXT")
-    private String result;
+    @Column(name = "result", columnDefinition = "LONGTEXT")
+    private String legacyResult;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "JSON")
+    private SajuCalculationSnapshot calculationSnapshot;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "JSON")
+    private SajuInterpretation interpretation;
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
@@ -60,7 +71,8 @@ public class SajuAnalysis {
             CalendarType calendarType,
             Gender gender,
             boolean isLeapMonth,
-            String result,
+            SajuCalculationSnapshot calculationSnapshot,
+            SajuInterpretation interpretation,
             Instant createdAt) {
         this.memberId = memberId;
         this.birthDate = birthDate;
@@ -68,7 +80,8 @@ public class SajuAnalysis {
         this.calendarType = calendarType;
         this.gender = gender;
         this.isLeapMonth = isLeapMonth;
-        this.result = result;
+        this.calculationSnapshot = Objects.requireNonNull(calculationSnapshot);
+        this.interpretation = Objects.requireNonNull(interpretation);
         this.createdAt = createdAt;
     }
 
@@ -79,8 +92,17 @@ public class SajuAnalysis {
             CalendarType calendarType,
             Gender gender,
             boolean isLeapMonth,
-            String result) {
+            SajuCalculationSnapshot calculationSnapshot,
+            SajuInterpretation interpretation) {
         return new SajuAnalysis(
-                memberId, birthDate, birthTime, calendarType, gender, isLeapMonth, result, Instant.now());
+                memberId,
+                birthDate,
+                birthTime,
+                calendarType,
+                gender,
+                isLeapMonth,
+                calculationSnapshot,
+                interpretation,
+                Instant.now());
     }
 }
