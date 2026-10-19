@@ -57,3 +57,25 @@
   line-height: 1.8;
   white-space: pre-wrap;
 }
+
+.analysis__reference-date {
+  margin: 0 0 20px;
+  color: #52525b;
+  font-size: 14px;
+}
+
+.analysis__paragraph + .analysis__paragraph {
+  margin-top: 32px;
+}
+
+.analysis__paragraph h2 {
+  margin: 0 0 12px;
+  color: #18181b;
+  font-size: 22px;
+}
+
+.analysis__result .analysis__legacy-notice {
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: #52525b;
+}

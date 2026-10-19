@@ -1,3 +1,4 @@
+import { sajuAnalysisResponse } from '../../test/sajuAnalysisFixture'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
 import { ApiError, InvalidApiResponseError } from '../../shared/api/errors'
@@ -76,6 +77,34 @@ describe('createSajuPreview', () => {
 })
 
 describe('createSajuAnalysis', () => {
+  it('구형 문자열 결과는 명시적인 legacyResult 응답으로 받는다', async () => {
+    const legacy = {
+      result: null,
+      legacyResult: '구형 분석 결과',
+      asOfDate: null,
+    }
+    server.use(http.post('/v1/saju/analysis', () => HttpResponse.json(legacy)))
+
+    await expect(
+      createSajuAnalysis(ANALYSIS_REQUEST, ACCESS_TOKEN),
+    ).resolves.toEqual({ ...legacy, status: 'EXISTING' })
+  })
+
+  it.each([
+    { result: '직렬화된 JSON 문자열' },
+    { ...sajuAnalysisResponse(), result: { schemaVersion: '2' } },
+    { ...sajuAnalysisResponse(), asOfDate: null },
+    { result: null, legacyResult: null, asOfDate: null },
+  ])('구조화된 응답 계약을 위반하면 거부한다: %j', async (response) => {
+    server.use(
+      http.post('/v1/saju/analysis', () => HttpResponse.json(response)),
+    )
+
+    await expect(
+      createSajuAnalysis(ANALYSIS_REQUEST, ACCESS_TOKEN),
+    ).rejects.toBeInstanceOf(InvalidApiResponseError)
+  })
+
   it('Access Token과 사주 정보를 전달하고 정상 응답을 반환한다', async () => {
     server.use(
       http.post('/v1/saju/analysis', async ({ request }) => {
@@ -84,19 +113,14 @@ describe('createSajuAnalysis', () => {
         )
         expect(await request.json()).toEqual(ANALYSIS_REQUEST)
 
-        return HttpResponse.json(
-          {
-            result: '전체 사주 분석 결과입니다.',
-          },
-          { status: 201 },
-        )
+        return HttpResponse.json(sajuAnalysisResponse(), { status: 201 })
       }),
     )
 
     await expect(
       createSajuAnalysis(ANALYSIS_REQUEST, ACCESS_TOKEN),
     ).resolves.toEqual({
-      result: '전체 사주 분석 결과입니다.',
+      ...sajuAnalysisResponse(),
       status: 'CREATED',
     })
   })
@@ -105,9 +129,7 @@ describe('createSajuAnalysis', () => {
     server.use(
       http.post('/v1/saju/analysis', () =>
         HttpResponse.json(
-          {
-            result: '기존 전체 사주 분석 결과입니다.',
-          },
+          sajuAnalysisResponse('기존 전체 사주 분석 결과입니다.'),
           { status: 200 },
         ),
       ),
@@ -116,7 +138,7 @@ describe('createSajuAnalysis', () => {
     await expect(
       createSajuAnalysis(ANALYSIS_REQUEST, ACCESS_TOKEN),
     ).resolves.toEqual({
-      result: '기존 전체 사주 분석 결과입니다.',
+      ...sajuAnalysisResponse('기존 전체 사주 분석 결과입니다.'),
       status: 'EXISTING',
     })
   })
@@ -124,12 +146,7 @@ describe('createSajuAnalysis', () => {
   it('예상하지 않은 성공 상태 코드면 InvalidApiResponseError를 던진다', async () => {
     server.use(
       http.post('/v1/saju/analysis', () =>
-        HttpResponse.json(
-          {
-            result: '전체 사주 분석 결과입니다.',
-          },
-          { status: 202 },
-        ),
+        HttpResponse.json(sajuAnalysisResponse(), { status: 202 }),
       ),
     )
 
