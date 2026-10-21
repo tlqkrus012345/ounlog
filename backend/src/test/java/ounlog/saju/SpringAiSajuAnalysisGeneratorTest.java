@@ -26,7 +26,7 @@ import org.springframework.core.io.ClassPathResource;
 import ounlog.saju.entity.SajuInterpretation;
 import ounlog.saju.exception.SajuErrorCode;
 import ounlog.saju.exception.SajuException;
-import ounlog.saju.external.SpringAiSajuAnalysisGenerator;
+import ounlog.saju.external.ai.SpringAiSajuAnalysisGenerator;
 import ounlog.saju.external.ai.AiSajuAnalysisRequestMapper;
 import ounlog.saju.external.ai.AiSajuAnalysisResponseValidator;
 import ounlog.saju.external.ai.SajuInterpretationMapper;

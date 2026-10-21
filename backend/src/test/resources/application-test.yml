@@ -2,6 +2,12 @@ spring:
   ai:
     openai:
       api-key: test-api-key
+    google:
+      genai:
+        api-key: test-gemini-api-key
+        chat:
+          model: gemini-3.8-flash
+          response-mime-type: application/js
 
   jpa:
     properties:
