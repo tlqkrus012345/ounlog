@@ -1,4 +1,4 @@
-package ounlog.saju.external;
+package ounlog.saju.external.ai;
 
 import java.util.List;
 import ounlog.saju.entity.SajuInterpretation;

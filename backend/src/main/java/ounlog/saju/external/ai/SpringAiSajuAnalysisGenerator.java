@@ -1,15 +1,13 @@
-package ounlog.saju.external;
+package ounlog.saju.external.ai;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import ounlog.saju.entity.SajuInterpretation;
 import ounlog.saju.exception.SajuErrorCode;
 import ounlog.saju.exception.SajuException;
-import ounlog.saju.external.ai.AiSajuAnalysisRequestMapper;
-import ounlog.saju.external.ai.AiSajuAnalysisResponseValidator;
-import ounlog.saju.external.ai.SajuInterpretationMapper;
 import ounlog.saju.external.ai.request.AiSajuAnalysisRequest;
 import ounlog.saju.external.ai.response.AiSajuAnalysisResponse;
 import ounlog.saju.external.manseryeok.ManseryeokCalculationResult;
@@ -28,7 +26,7 @@ public class SpringAiSajuAnalysisGenerator implements SajuAnalysisGenerator {
     private final SajuInterpretationMapper interpretationMapper;
 
     public SpringAiSajuAnalysisGenerator(
-            ChatClient chatClient,
+            @Qualifier("geminiChatClient") ChatClient chatClient,
             @Value("classpath:prompts/saju-analysis-v1.st") Resource promptResource,
             AiSajuAnalysisRequestMapper aiSajuAnalysisRequestMapper,
             AiSajuAnalysisResponseValidator responseValidator,
