@@ -15,6 +15,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function isSajuPreviewResponse(value: unknown): value is SajuPreviewResponse {
   return (
     isRecord(value) &&
+    typeof value.year === 'number' &&
+    Number.isInteger(value.year) &&
     typeof value.keyword === 'string' &&
     typeof value.summary === 'string'
   )

@@ -54,6 +54,7 @@ describe('ConfirmPage', () => {
 
   it('올바른 요청값으로 분석 API를 호출하고 Preview 페이지로 이동한다', async () => {
     vi.mocked(sajuApi.createSajuPreview).mockResolvedValue({
+      year: 2026,
       keyword: '전환',
       summary: '올해는 새로운 변화를 시도하기 좋은 흐름이 나타납니다.',
     })
@@ -115,7 +116,7 @@ describe('ConfirmPage', () => {
       () =>
         new Promise((resolve) => {
           resolveRequest = () =>
-            resolve({ keyword: '전환', summary: '분석 결과입니다.' })
+            resolve({ year: 2026, keyword: '전환', summary: '분석 결과입니다.' })
         }),
     )
     const user = userEvent.setup()

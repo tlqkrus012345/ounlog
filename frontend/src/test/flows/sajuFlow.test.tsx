@@ -19,6 +19,7 @@ describe('사주 분석 사용자 흐름', () => {
         })
 
         return HttpResponse.json({
+          year: 2026,
           keyword: '전환',
           summary: '올해는 새로운 변화를 시도하기 좋은 흐름이 나타납니다.',
         })

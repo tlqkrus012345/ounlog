@@ -15,7 +15,7 @@ function SajuPreviewPage() {
   return (
     <main className="preview">
       <section className="preview__content">
-        <p className="preview__eyebrow">올해 당신의 핵심 키워드는</p>
+        <p className="preview__eyebrow">{result.year}년 당신의 핵심 키워드는</p>
 
         <h1 className="preview__keyword">{result.keyword}</h1>
 

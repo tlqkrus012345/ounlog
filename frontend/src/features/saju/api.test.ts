@@ -31,6 +31,7 @@ describe('createSajuPreview', () => {
         expect(await request.json()).toEqual(PREVIEW_REQUEST)
 
         return HttpResponse.json({
+          year: 2026,
           keyword: '균형',
           summary: '균형을 중요하게 생각합니다.',
         })
@@ -38,10 +39,26 @@ describe('createSajuPreview', () => {
     )
 
     await expect(createSajuPreview(PREVIEW_REQUEST)).resolves.toEqual({
+      year: 2026,
       keyword: '균형',
       summary: '균형을 중요하게 생각합니다.',
     })
   })
+
+  it.each([undefined, null, '2026', 2026.5])(
+    '연운의 연도가 정수가 아니면 응답을 거부한다: %s',
+    async (year) => {
+      server.use(
+        http.post('/v1/saju/previews', () =>
+          HttpResponse.json({ year, keyword: '균형', summary: '올해의 해석' }),
+        ),
+      )
+
+      await expect(createSajuPreview(PREVIEW_REQUEST)).rejects.toBeInstanceOf(
+        InvalidApiResponseError,
+      )
+    },
+  )
 
   it('백엔드 오류 응답을 ApiError로 변환한다', async () => {
     server.use(

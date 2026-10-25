@@ -26,6 +26,7 @@ export type SajuFormState = {
 }
 
 export type SajuPreviewResponse = {
+  year: number
   keyword: string
   summary: string
 }
