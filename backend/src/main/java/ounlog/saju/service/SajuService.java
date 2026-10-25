@@ -28,7 +28,7 @@ public class SajuService {
     private final SajuCalculationSnapshotMapper snapshotMapper;
 
     public SajuPreviewResult preview(SajuPreviewCommand command) {
-        return new SajuPreviewResult("키워드", "요약 내용");
+        return new SajuPreviewResult(2026, "키워드", "요약 내용");
     }
 
     public SajuAnalysisCreateResult sajuAnalysis(SajuAnalysisCommand command, Long memberId) {

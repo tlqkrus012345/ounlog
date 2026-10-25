@@ -61,7 +61,7 @@ class SajuControllerTest {
     void preview() throws Exception {
         SajuPreviewCommand command = new SajuPreviewCommand(
                 LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR, Gender.FEMALE, false);
-        given(sajuService.preview(command)).willReturn(new SajuPreviewResult("키워드", "요약 내용"));
+        given(sajuService.preview(command)).willReturn(new SajuPreviewResult(2026, "키워드", "요약 내용"));
 
         mockMvc.perform(post("/v1/saju/previews")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -75,8 +75,9 @@ class SajuControllerTest {
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.keyword").exists())
-                .andExpect(jsonPath("$.summary").exists());
+                .andExpect(jsonPath("$.year").value(2026))
+                .andExpect(jsonPath("$.keyword").value("키워드"))
+                .andExpect(jsonPath("$.summary").value("요약 내용"));
 
         then(sajuService).should().preview(command);
     }
