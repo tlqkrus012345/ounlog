@@ -3,6 +3,7 @@ package ounlog.saju;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -26,6 +27,7 @@ import ounlog.saju.repository.SajuAnalysisRepository;
 import ounlog.saju.service.SajuAnalysisGenerator;
 import ounlog.saju.service.SajuAnalysisStatus;
 import ounlog.saju.service.SajuCalculator;
+import ounlog.saju.service.SajuPreviewGenerator;
 import ounlog.saju.service.SajuService;
 import ounlog.saju.service.command.SajuAnalysisCommand;
 import ounlog.saju.service.result.SajuAnalysisCreateResult;
@@ -45,6 +47,9 @@ class SajuIntegrationTest {
 
     @MockitoBean
     SajuAnalysisGenerator sajuAnalysisGenerator;
+
+    @MockitoBean
+    private SajuPreviewGenerator sajuPreviewGenerator;
 
     @DisplayName("동시에 사주 분석을 요청하면 하나는 생성되고 나머지는 기존 결과를 반환한다.")
     @Test
@@ -90,6 +95,7 @@ class SajuIntegrationTest {
         executorService.shutdown();
 
         // then
+        then(sajuPreviewGenerator).shouldHaveNoInteractions();
         assertThat(sajuAnalysisRepository.findAll()).hasSize(1);
         var saved = sajuAnalysisRepository.findByMemberId(1L).orElseThrow();
         assertThat(saved.getCalculationSnapshot()).isEqualTo(SajuTestFixtures.calculationSnapshot());

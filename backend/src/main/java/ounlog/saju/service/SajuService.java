@@ -24,11 +24,13 @@ public class SajuService {
 
     private final SajuAnalysisRepository sajuAnalysisRepository;
     private final SajuAnalysisGenerator sajuAnalysisGenerator;
+    private final SajuPreviewGenerator sajuPreviewGenerator;
     private final SajuCalculator sajuCalculator;
     private final SajuCalculationSnapshotMapper snapshotMapper;
 
     public SajuPreviewResult preview(SajuPreviewCommand command) {
-        return new SajuPreviewResult(2026, "키워드", "요약 내용");
+        ManseryeokCalculationResult calculation = sajuCalculator.calculate(command.toBirthInfo());
+        return sajuPreviewGenerator.generate(calculation);
     }
 
     public SajuAnalysisCreateResult sajuAnalysis(SajuAnalysisCommand command, Long memberId) {

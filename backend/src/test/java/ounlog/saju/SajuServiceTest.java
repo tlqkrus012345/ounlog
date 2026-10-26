@@ -26,14 +26,18 @@ import ounlog.saju.entity.Gender;
 import ounlog.saju.entity.SajuAnalysis;
 import ounlog.saju.exception.SajuErrorCode;
 import ounlog.saju.exception.SajuException;
+import ounlog.saju.external.manseryeok.ManseryeokCalculationResult;
 import ounlog.saju.external.manseryeok.SajuCalculationSnapshotMapper;
 import ounlog.saju.repository.SajuAnalysisRepository;
 import ounlog.saju.service.SajuAnalysisGenerator;
 import ounlog.saju.service.SajuAnalysisStatus;
 import ounlog.saju.service.SajuCalculator;
+import ounlog.saju.service.SajuPreviewGenerator;
 import ounlog.saju.service.SajuService;
 import ounlog.saju.service.command.SajuAnalysisCommand;
+import ounlog.saju.service.command.SajuPreviewCommand;
 import ounlog.saju.service.result.SajuAnalysisCreateResult;
+import ounlog.saju.service.result.SajuPreviewResult;
 
 @ExtendWith(MockitoExtension.class)
 class SajuServiceTest {
@@ -45,6 +49,9 @@ class SajuServiceTest {
     SajuAnalysisGenerator sajuAnalysisGenerator;
 
     @Mock
+    private SajuPreviewGenerator sajuPreviewGenerator;
+
+    @Mock
     SajuCalculator sajuCalculator;
 
     @Spy
@@ -52,6 +59,56 @@ class SajuServiceTest {
 
     @InjectMocks
     SajuService sajuService;
+
+    @DisplayName("Preview는 출생 정보로 계산한 결과를 생성기에 전달하고 저장 없이 반환한다.")
+    @Test
+    void preview() {
+        SajuPreviewCommand command = new SajuPreviewCommand(
+                LocalDate.of(1998, 8, 21), LocalTime.of(14, 32), CalendarType.LUNAR, Gender.FEMALE, true);
+        ManseryeokCalculationResult calculation = SajuTestFixtures.calculationResult();
+        SajuPreviewResult expected = new SajuPreviewResult(2025, "선택과 집중", "올해는 중요한 목표에 집중해 보세요.");
+        given(sajuCalculator.calculate(command.toBirthInfo())).willReturn(calculation);
+        given(sajuPreviewGenerator.generate(calculation)).willReturn(expected);
+
+        SajuPreviewResult result = sajuService.preview(command);
+
+        assertThat(result).isSameAs(expected);
+        then(sajuCalculator).should().calculate(command.toBirthInfo());
+        then(sajuPreviewGenerator).should().generate(calculation);
+        then(sajuAnalysisRepository).shouldHaveNoInteractions();
+        then(sajuAnalysisGenerator).shouldHaveNoInteractions();
+    }
+
+    @DisplayName("Preview 계산에 실패하면 생성기를 호출하지 않고 계산 실패를 전파한다.")
+    @Test
+    void previewCalculationFailure() {
+        SajuPreviewCommand command = new SajuPreviewCommand(
+                LocalDate.of(1998, 8, 21), LocalTime.of(14, 32), CalendarType.SOLAR, Gender.FEMALE, false);
+        SajuException failure = new SajuException(SajuErrorCode.SAJU_CALCULATION_FAILED);
+        given(sajuCalculator.calculate(command.toBirthInfo())).willThrow(failure);
+
+        assertThatThrownBy(() -> sajuService.preview(command)).isSameAs(failure);
+
+        then(sajuPreviewGenerator).shouldHaveNoInteractions();
+        then(sajuAnalysisRepository).shouldHaveNoInteractions();
+        then(sajuAnalysisGenerator).shouldHaveNoInteractions();
+    }
+
+    @DisplayName("Preview 생성에 실패하면 저장 없이 해석 실패를 전파한다.")
+    @Test
+    void previewGenerationFailure() {
+        SajuPreviewCommand command = new SajuPreviewCommand(
+                LocalDate.of(1998, 8, 21), LocalTime.of(14, 32), CalendarType.SOLAR, Gender.FEMALE, false);
+        ManseryeokCalculationResult calculation = SajuTestFixtures.calculationResult();
+        SajuException failure = new SajuException(SajuErrorCode.SAJU_ANALYSIS_GENERATION_FAILED);
+        given(sajuCalculator.calculate(command.toBirthInfo())).willReturn(calculation);
+        given(sajuPreviewGenerator.generate(calculation)).willThrow(failure);
+
+        assertThatThrownBy(() -> sajuService.preview(command)).isSameAs(failure);
+
+        then(sajuAnalysisRepository).shouldHaveNoInteractions();
+        then(sajuAnalysisGenerator).shouldHaveNoInteractions();
+    }
 
     @DisplayName("분석 결과가 없으면 새 결과를 생성한다.")
     @Test
@@ -67,6 +124,7 @@ class SajuServiceTest {
         SajuAnalysisCreateResult result = sajuService.sajuAnalysis(command, 1L);
 
         // then
+        then(sajuPreviewGenerator).shouldHaveNoInteractions();
         assertThat(result.result()).isEqualTo(SajuTestFixtures.interpretation("새 운세 결과"));
         assertThat(result.asOfDate()).isEqualTo(calculation.context().asOfDate());
         assertThat(result.legacyResult()).isNull();
