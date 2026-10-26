@@ -8,6 +8,7 @@ import ounlog.saju.external.ai.AiSajuPreviewRequestMapper;
 import ounlog.saju.external.ai.request.AiSajuPreviewRequest;
 import ounlog.saju.external.manseryeok.ManseryeokCalculationResult;
 import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 
 class AiSajuPreviewRequestMapperTest {
 
@@ -32,7 +33,7 @@ class AiSajuPreviewRequestMapperTest {
 
         JsonNode actual = SajuTestFixtures.JSON.valueToTree(request);
         JsonNode calculation = SajuTestFixtures.JSON.valueToTree(SajuTestFixtures.calculationResult());
-        var expected = SajuTestFixtures.JSON.createObjectNode();
+        ObjectNode expected = SajuTestFixtures.JSON.createObjectNode();
         expected.set("pillars", calculation.get("pillars"));
         expected.set("elementCounts", calculation.get("context").get("elementCounts"));
         expected.set("annualLuck", calculation.get("context").get("annualLuck"));
