@@ -60,7 +60,7 @@ class SajuServiceTest {
         SajuAnalysisCommand command = command();
         given(sajuAnalysisRepository.findByMemberId(1L)).willReturn(Optional.empty());
         var calculation = SajuTestFixtures.calculationResult();
-        given(sajuCalculator.calculate(command)).willReturn(calculation);
+        given(sajuCalculator.calculate(command.toBirthInfo())).willReturn(calculation);
         given(sajuAnalysisGenerator.generate(calculation)).willReturn(SajuTestFixtures.interpretation("새 운세 결과"));
 
         // when
@@ -108,7 +108,7 @@ class SajuServiceTest {
                 .willReturn(Optional.empty())
                 .willReturn(Optional.of(existingAnalysis));
         var calculation = SajuTestFixtures.calculationResult();
-        given(sajuCalculator.calculate(command)).willReturn(calculation);
+        given(sajuCalculator.calculate(command.toBirthInfo())).willReturn(calculation);
         given(sajuAnalysisGenerator.generate(calculation)).willReturn(SajuTestFixtures.interpretation("중복 생성 결과"));
         given(sajuAnalysisRepository.saveAndFlush(any(SajuAnalysis.class))).willThrow(exception);
 
@@ -130,7 +130,7 @@ class SajuServiceTest {
                 new DataIntegrityViolationException("unexpected constraint violation");
         given(sajuAnalysisRepository.findByMemberId(1L)).willReturn(Optional.empty());
         var calculation = SajuTestFixtures.calculationResult();
-        given(sajuCalculator.calculate(command)).willReturn(calculation);
+        given(sajuCalculator.calculate(command.toBirthInfo())).willReturn(calculation);
         given(sajuAnalysisGenerator.generate(calculation)).willReturn(SajuTestFixtures.interpretation("새 운세 결과"));
         given(sajuAnalysisRepository.saveAndFlush(any(SajuAnalysis.class))).willThrow(exception);
 
@@ -149,7 +149,7 @@ class SajuServiceTest {
         SajuAnalysisCommand command = command();
         SajuException failure = new SajuException(SajuErrorCode.SAJU_CALCULATION_FAILED);
         given(sajuAnalysisRepository.findByMemberId(1L)).willReturn(Optional.empty());
-        given(sajuCalculator.calculate(command)).willThrow(failure);
+        given(sajuCalculator.calculate(command.toBirthInfo())).willThrow(failure);
 
         assertThatThrownBy(() -> sajuService.sajuAnalysis(command, 1L)).isSameAs(failure);
 
@@ -164,7 +164,7 @@ class SajuServiceTest {
         var calculation = SajuTestFixtures.calculationResult();
         SajuException failure = new SajuException(SajuErrorCode.SAJU_ANALYSIS_GENERATION_FAILED);
         given(sajuAnalysisRepository.findByMemberId(1L)).willReturn(Optional.empty());
-        given(sajuCalculator.calculate(command)).willReturn(calculation);
+        given(sajuCalculator.calculate(command.toBirthInfo())).willReturn(calculation);
         given(sajuAnalysisGenerator.generate(calculation)).willThrow(failure);
 
         assertThatThrownBy(() -> sajuService.sajuAnalysis(command, 1L)).isSameAs(failure);

@@ -58,7 +58,7 @@ class SajuIntegrationTest {
         SajuAnalysisCommand command = new SajuAnalysisCommand(
                 LocalDate.of(2026, 1, 1), LocalTime.of(10, 0), CalendarType.SOLAR, Gender.MALE, false);
 
-        given(sajuCalculator.calculate(command)).willAnswer(invocation -> {
+        given(sajuCalculator.calculate(command.toBirthInfo())).willAnswer(invocation -> {
             assertThat(TransactionSynchronizationManager.isActualTransactionActive())
                     .isFalse();
             return SajuTestFixtures.calculationResult();

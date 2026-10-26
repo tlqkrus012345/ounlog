@@ -21,7 +21,7 @@ import ounlog.saju.external.manseryeok.ManseryeokCalculator;
 import ounlog.saju.external.manseryeok.ManseryeokClient;
 import ounlog.saju.external.manseryeok.request.ManseryeokCalculationRequest;
 import ounlog.saju.external.manseryeok.response.ManseryeokCalculationResponse;
-import ounlog.saju.service.command.SajuAnalysisCommand;
+import ounlog.saju.service.SajuBirthInfo;
 
 class ManseryeokCalculatorTest {
 
@@ -34,7 +34,7 @@ class ManseryeokCalculatorTest {
         Instant asOf = Instant.parse("2026-10-17T00:00:00Z");
         ManseryeokCalculator calculator = new ManseryeokCalculator(client, Clock.fixed(asOf, ZoneOffset.UTC));
 
-        ManseryeokCalculationResult result = calculator.calculate(new SajuAnalysisCommand(
+        ManseryeokCalculationResult result = calculator.calculate(new SajuBirthInfo(
                 LocalDate.of(1992, 10, 24), LocalTime.MIDNIGHT, CalendarType.SOLAR, Gender.MALE, false));
 
         ArgumentCaptor<ManseryeokCalculationRequest> captor = ArgumentCaptor.forClass(ManseryeokCalculationRequest.class);
@@ -54,7 +54,7 @@ class ManseryeokCalculatorTest {
         Instant asOf = Instant.parse("2026-10-17T00:00:00Z");
         ManseryeokCalculator calculator = new ManseryeokCalculator(client, Clock.fixed(asOf, ZoneOffset.UTC));
 
-        calculator.calculate(new SajuAnalysisCommand(
+        calculator.calculate(new SajuBirthInfo(
                 LocalDate.of(2020, 4, 1), LocalTime.of(14, 30), CalendarType.LUNAR, Gender.FEMALE, true));
 
         then(client)

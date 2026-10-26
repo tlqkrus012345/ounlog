@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 import ounlog.saju.entity.CalendarType;
 import ounlog.saju.external.manseryeok.request.ManseryeokCalculationRequest;
 import ounlog.saju.external.manseryeok.response.ManseryeokCalculationResponse;
+import ounlog.saju.service.SajuBirthInfo;
 import ounlog.saju.service.SajuCalculator;
-import ounlog.saju.service.command.SajuAnalysisCommand;
 
 @RequiredArgsConstructor
 @Component
@@ -20,14 +20,14 @@ public class ManseryeokCalculator implements SajuCalculator {
     private final Clock clock;
 
     @Override
-    public ManseryeokCalculationResult calculate(SajuAnalysisCommand command) {
-        LocalDate birthDate = command.birthDate();
-        LocalTime birthTime = command.birthTime();
+    public ManseryeokCalculationResult calculate(SajuBirthInfo birthInfo) {
+        LocalDate birthDate = birthInfo.birthDate();
+        LocalTime birthTime = birthInfo.birthTime();
 
         Instant asOf = clock.instant();
 
         String gender =
-                switch (command.gender()) {
+                switch (birthInfo.gender()) {
                     case MALE -> "male";
                     case FEMALE -> "female";
                 };
@@ -38,8 +38,8 @@ public class ManseryeokCalculator implements SajuCalculator {
                 .day(birthDate.getDayOfMonth())
                 .hour(birthTime.getHour())
                 .minute(birthTime.getMinute())
-                .isLunar(command.calendarType() == CalendarType.LUNAR)
-                .isLeapMonth(command.isLeapMonth())
+                .isLunar(birthInfo.calendarType() == CalendarType.LUNAR)
+                .isLeapMonth(birthInfo.isLeapMonth())
                 .gender(gender)
                 .dayBoundary("midnight")
                 .asOf(asOf)

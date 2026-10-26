@@ -38,7 +38,7 @@ public class SajuService {
             return SajuAnalysisCreateResult.from(SajuAnalysisStatus.EXISTING, existing.get());
         }
 
-        ManseryeokCalculationResult manseryeokCalculationResult = sajuCalculator.calculate(command);
+        ManseryeokCalculationResult manseryeokCalculationResult = sajuCalculator.calculate(command.toBirthInfo());
 
         SajuInterpretation sajuAnalysisResult = sajuAnalysisGenerator.generate(manseryeokCalculationResult);
         SajuAnalysis sajuAnalysis = SajuAnalysis.create(
