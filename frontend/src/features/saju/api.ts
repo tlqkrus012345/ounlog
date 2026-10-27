@@ -73,6 +73,7 @@ export async function createSajuPreview(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(previewRequest),
+    timeoutMs: 60_000,
     validate: isSajuPreviewResponse,
   })
 }

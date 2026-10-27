@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import * as sajuApi from '../../features/saju/api'
+import { ApiTimeoutError } from '../../shared/api/errors'
 import { saveSajuForm } from '../../features/saju/storage'
 import type { SajuFormState } from '../../features/saju/types'
 import ConfirmPage from './ConfirmPage'
@@ -90,7 +91,33 @@ describe('ConfirmPage', () => {
       await screen.findByText('분석 중 문제가 발생했습니다.'),
     ).toBeInTheDocument()
     expect(screen.getByTestId('location')).toHaveTextContent('/saju/confirm')
+    expect(
+      screen.queryByRole('status', { name: '사주 분석 진행 상태' }),
+    ).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: '분석 시작하기' })).toBeEnabled()
+  })
+
+  it('요청 시간이 초과되면 지연 안내와 다시 시도할 수 있는 버튼을 표시한다', async () => {
+    vi.mocked(sajuApi.createSajuPreview).mockRejectedValue(
+      new ApiTimeoutError(),
+    )
+    const user = userEvent.setup()
+
+    renderConfirmPage()
+    await user.click(screen.getByRole('button', { name: '분석 시작하기' }))
+
+    expect(
+      await screen.findByText(
+        '분석이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.',
+      ),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('status', { name: '사주 분석 진행 상태' }),
+    ).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '분석 시작하기' })).toBeEnabled()
+    expect(
+      screen.getByRole('button', { name: '이전 단계로 이동' }),
+    ).toBeEnabled()
   })
 
   it('location.state가 없으면 sessionStorage의 입력값을 복구한다', () => {
@@ -116,7 +143,11 @@ describe('ConfirmPage', () => {
       () =>
         new Promise((resolve) => {
           resolveRequest = () =>
-            resolve({ year: 2026, keyword: '전환', summary: '분석 결과입니다.' })
+            resolve({
+              year: 2026,
+              keyword: '전환',
+              summary: '분석 결과입니다.',
+            })
         }),
     )
     const user = userEvent.setup()
@@ -125,6 +156,12 @@ describe('ConfirmPage', () => {
     await user.click(screen.getByRole('button', { name: '분석 시작하기' }))
 
     const loadingButton = screen.getByRole('button', { name: '분석 중...' })
+    expect(
+      screen.getByRole('status', { name: '사주 분석 진행 상태' }),
+    ).toHaveTextContent('올해의 흐름을 해석하는 중')
+    expect(
+      screen.getByRole('button', { name: '이전 단계로 이동' }),
+    ).toBeDisabled()
     expect(loadingButton).toBeDisabled()
     await user.click(loadingButton)
     expect(sajuApi.createSajuPreview).toHaveBeenCalledTimes(1)
