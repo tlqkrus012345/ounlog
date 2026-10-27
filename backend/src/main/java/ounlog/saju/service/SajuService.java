@@ -6,8 +6,11 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ounlog.saju.entity.SajuAnalysis;
+import ounlog.saju.entity.SajuInterpretation;
 import ounlog.saju.exception.SajuErrorCode;
 import ounlog.saju.exception.SajuException;
+import ounlog.saju.external.manseryeok.ManseryeokCalculationResult;
+import ounlog.saju.external.manseryeok.SajuCalculationSnapshotMapper;
 import ounlog.saju.repository.SajuAnalysisRepository;
 import ounlog.saju.service.command.SajuAnalysisCommand;
 import ounlog.saju.service.command.SajuPreviewCommand;
@@ -21,29 +24,41 @@ public class SajuService {
 
     private final SajuAnalysisRepository sajuAnalysisRepository;
     private final SajuAnalysisGenerator sajuAnalysisGenerator;
+    private final SajuPreviewGenerator sajuPreviewGenerator;
+    private final SajuCalculator sajuCalculator;
+    private final SajuCalculationSnapshotMapper snapshotMapper;
 
     public SajuPreviewResult preview(SajuPreviewCommand command) {
-        return new SajuPreviewResult("키워드", "요약 내용");
+        ManseryeokCalculationResult calculation = sajuCalculator.calculate(command.toBirthInfo());
+        return sajuPreviewGenerator.generate(calculation);
     }
 
     public SajuAnalysisCreateResult sajuAnalysis(SajuAnalysisCommand command, Long memberId) {
         Optional<SajuAnalysis> existing = sajuAnalysisRepository.findByMemberId(memberId);
 
         if (existing.isPresent()) {
-            return new SajuAnalysisCreateResult(
-                    SajuAnalysisStatus.EXISTING, existing.get().getResult());
+            return SajuAnalysisCreateResult.from(SajuAnalysisStatus.EXISTING, existing.get());
         }
 
-        String sajuAnalysisResult = sajuAnalysisGenerator.generate(command);
+        ManseryeokCalculationResult manseryeokCalculationResult = sajuCalculator.calculate(command.toBirthInfo());
+
+        SajuInterpretation sajuAnalysisResult = sajuAnalysisGenerator.generate(manseryeokCalculationResult);
         SajuAnalysis sajuAnalysis = SajuAnalysis.create(
-                memberId, command.birthDate(), command.birthTime(), command.calendarType(), sajuAnalysisResult);
+                memberId,
+                command.birthDate(),
+                command.birthTime(),
+                command.calendarType(),
+                command.gender(),
+                command.isLeapMonth(),
+                snapshotMapper.map(manseryeokCalculationResult),
+                sajuAnalysisResult);
         try {
             sajuAnalysisRepository.saveAndFlush(sajuAnalysis);
-            return new SajuAnalysisCreateResult(SajuAnalysisStatus.CREATED, sajuAnalysisResult);
+            return SajuAnalysisCreateResult.from(SajuAnalysisStatus.CREATED, sajuAnalysis);
         } catch (DataIntegrityViolationException exception) {
             return sajuAnalysisRepository
                     .findByMemberId(memberId)
-                    .map(analysis -> new SajuAnalysisCreateResult(SajuAnalysisStatus.EXISTING, analysis.getResult()))
+                    .map(analysis -> SajuAnalysisCreateResult.from(SajuAnalysisStatus.EXISTING, analysis))
                     .orElseThrow(() -> exception);
         }
     }
@@ -54,6 +69,6 @@ public class SajuService {
                 .findByMemberId(memberId)
                 .orElseThrow(() -> new SajuException(SajuErrorCode.SAJU_ANALYSIS_NOT_FOUND));
 
-        return new SajuAnalysisResult(sajuAnalysis.getResult());
+        return SajuAnalysisResult.from(sajuAnalysis);
     }
 }

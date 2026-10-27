@@ -31,6 +31,7 @@ describe('SajuPreviewPage', () => {
           {
             pathname: '/saju/preview',
             state: {
+              year: 2026,
               keyword: '전환',
               summary: '새로운 변화를 시도하기 좋은 흐름입니다.',
             },
@@ -43,6 +44,10 @@ describe('SajuPreviewPage', () => {
         </Routes>
       </MemoryRouter>,
     )
+
+    expect(
+      screen.getByText('2026년 당신의 핵심 키워드는'),
+    ).toBeInTheDocument()
 
     await user.click(
       screen.getByRole('button', { name: '전체 사주 분석 보기' }),

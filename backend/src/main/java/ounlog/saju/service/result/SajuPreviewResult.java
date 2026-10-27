@@ -1,3 +1,3 @@
 package ounlog.saju.service.result;
 
-public record SajuPreviewResult(String keyword, String summary) {}
+public record SajuPreviewResult(int year, String keyword, String summary) {}

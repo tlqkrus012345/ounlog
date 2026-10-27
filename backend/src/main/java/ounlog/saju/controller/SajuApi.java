@@ -15,7 +15,9 @@ import ounlog.saju.controller.response.SajuPreviewResponse;
 
 public interface SajuApi {
 
-    @Operation(summary = "사주 Preview 분석", description = "생년월일 및 출생시간 정보를 기반으로 Preview 사주 분석을 제공합니다.")
+    @Operation(
+            summary = "올해의 핵심 키워드 Preview",
+            description = "출생 사주와 연운을 연결한 핵심 키워드 하나와 짧은 해석을 제공합니다. year는 입춘 기준 연운의 연도입니다.")
     @ApiResponses({
         @ApiResponse(
                 responseCode = "200",

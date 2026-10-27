@@ -7,10 +7,10 @@ import type {
 export function toSajuPreviewRequest(form: SajuFormState): SajuPreviewRequest {
   return {
     birthDate: form.birthDate,
-
-    birthTime: form.birthTimeKnown ? form.birthTime : null,
-
+    birthTime: form.birthTime,
     calendarType: form.calendarType,
+    gender: form.gender,
+    isLeapMonth: form.isLeapMonth,
   }
 }
 
@@ -19,9 +19,9 @@ export function toSajuAnalysisRequest(
 ): SajuAnalysisRequest {
   return {
     birthDate: form.birthDate,
-
-    birthTime: form.birthTimeKnown ? form.birthTime : null,
-
+    birthTime: form.birthTime,
     calendarType: form.calendarType,
+    gender: form.gender,
+    isLeapMonth: form.isLeapMonth,
   }
 }

@@ -25,7 +25,23 @@ describe('BirthDatePage', () => {
     expect(screen.getByRole('button', { name: '다음' })).toBeDisabled()
   })
 
-  it('생년월일과 달력 유형을 다음 단계의 state로 전달한다', async () => {
+  it('성별을 선택하기 전에는 다음 단계로 진행할 수 없다', () => {
+    render(
+      <MemoryRouter initialEntries={['/saju']}>
+        <Routes>
+          <Route path="/saju" element={<BirthDatePage />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    fireEvent.change(screen.getByLabelText('생년월일'), {
+      target: { value: '1998-08-21' },
+    })
+
+    expect(screen.getByRole('button', { name: '다음' })).toBeDisabled()
+  })
+
+  it('생년월일, 달력 유형, 성별과 윤달 여부를 다음 단계의 state로 전달한다', async () => {
     const user = userEvent.setup()
     render(
       <MemoryRouter initialEntries={['/saju']}>
@@ -40,19 +56,28 @@ describe('BirthDatePage', () => {
       target: { value: '1998-08-21' },
     })
     await user.click(screen.getByRole('button', { name: '음력' }))
+    expect(screen.getByRole('button', { name: '다음' })).toBeDisabled()
+    await user.click(screen.getByRole('button', { name: '윤달' }))
+    await user.click(screen.getByRole('button', { name: '여성' }))
     await user.click(screen.getByRole('button', { name: '다음' }))
 
     expect(screen.getByTestId('route-state')).toHaveTextContent(
-      JSON.stringify({ birthDate: '1998-08-21', calendarType: 'LUNAR' }),
+      JSON.stringify({
+        birthDate: '1998-08-21',
+        calendarType: 'LUNAR',
+        gender: 'FEMALE',
+        isLeapMonth: true,
+      }),
     )
   })
 
   it('sessionStorage의 기존 입력값으로 폼을 복구한다', () => {
     saveSajuForm({
       birthDate: '1998-08-21',
-      birthTime: null,
-      birthTimeKnown: false,
+      birthTime: '00:00',
       calendarType: 'LUNAR',
+      gender: 'MALE',
+      isLeapMonth: true,
     })
 
     render(
@@ -66,6 +91,12 @@ describe('BirthDatePage', () => {
     expect(screen.getByLabelText('생년월일')).toHaveValue('1998-08-21')
     expect(screen.getByRole('button', { name: '음력' })).toHaveClass(
       'birth-date__calendar-button--selected',
+    )
+    expect(screen.getByRole('button', { name: '남성' })).toHaveClass(
+      'birth-date__gender-button--selected',
+    )
+    expect(screen.getByRole('button', { name: '윤달' })).toHaveClass(
+      'birth-date__leap-month-button--selected',
     )
   })
 })

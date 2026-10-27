@@ -1,0 +1,2 @@
+ALTER TABLE saju_analysis
+    ADD COLUMN is_leap_month TINYINT(1) NOT NULL DEFAULT FALSE;

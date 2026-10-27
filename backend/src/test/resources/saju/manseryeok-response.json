@@ -1,0 +1,226 @@
+{
+  "pillars": {
+    "year": {
+      "heavenlyStem": "임",
+      "earthlyBranch": "신"
+    },
+    "month": {
+      "heavenlyStem": "경",
+      "earthlyBranch": "술"
+    },
+    "day": {
+      "heavenlyStem": "계",
+      "earthlyBranch": "유"
+    },
+    "hour": {
+      "heavenlyStem": "을",
+      "earthlyBranch": "묘"
+    }
+  },
+  "elements": {
+    "year": {
+      "stem": "수",
+      "branch": "금"
+    },
+    "month": {
+      "stem": "금",
+      "branch": "토"
+    },
+    "day": {
+      "stem": "수",
+      "branch": "금"
+    },
+    "hour": {
+      "stem": "목",
+      "branch": "목"
+    }
+  },
+  "yinYang": {
+    "year": {
+      "stem": "양",
+      "branch": "양"
+    },
+    "month": {
+      "stem": "양",
+      "branch": "양"
+    },
+    "day": {
+      "stem": "음",
+      "branch": "음"
+    },
+    "hour": {
+      "stem": "음",
+      "branch": "음"
+    }
+  },
+  "tenGods": {
+    "year": {
+      "stem": "겁재",
+      "branch": "정인"
+    },
+    "month": {
+      "stem": "정인",
+      "branch": "정관"
+    },
+    "day": {
+      "stem": "일간",
+      "branch": "편인"
+    },
+    "hour": {
+      "stem": "식신",
+      "branch": "식신"
+    }
+  },
+  "voidBranches": [
+    "술",
+    "해"
+  ],
+  "luckPillars": {
+    "forward": true,
+    "startAge": 5,
+    "startYears": 4,
+    "startMonths": 9,
+    "startDays": 7,
+    "pillars": [
+      {
+        "age": 5,
+        "pillar": {
+          "heavenlyStem": "신",
+          "earthlyBranch": "해"
+        },
+        "korean": "신해"
+      },
+      {
+        "age": 15,
+        "pillar": {
+          "heavenlyStem": "임",
+          "earthlyBranch": "자"
+        },
+        "korean": "임자"
+      },
+      {
+        "age": 25,
+        "pillar": {
+          "heavenlyStem": "계",
+          "earthlyBranch": "축"
+        },
+        "korean": "계축"
+      },
+      {
+        "age": 35,
+        "pillar": {
+          "heavenlyStem": "갑",
+          "earthlyBranch": "인"
+        },
+        "korean": "갑인"
+      },
+      {
+        "age": 45,
+        "pillar": {
+          "heavenlyStem": "을",
+          "earthlyBranch": "묘"
+        },
+        "korean": "을묘"
+      },
+      {
+        "age": 55,
+        "pillar": {
+          "heavenlyStem": "병",
+          "earthlyBranch": "진"
+        },
+        "korean": "병진"
+      },
+      {
+        "age": 65,
+        "pillar": {
+          "heavenlyStem": "정",
+          "earthlyBranch": "사"
+        },
+        "korean": "정사"
+      },
+      {
+        "age": 75,
+        "pillar": {
+          "heavenlyStem": "무",
+          "earthlyBranch": "오"
+        },
+        "korean": "무오"
+      },
+      {
+        "age": 85,
+        "pillar": {
+          "heavenlyStem": "기",
+          "earthlyBranch": "미"
+        },
+        "korean": "기미"
+      },
+      {
+        "age": 95,
+        "pillar": {
+          "heavenlyStem": "경",
+          "earthlyBranch": "신"
+        },
+        "korean": "경신"
+      }
+    ]
+  },
+  "context": {
+    "asOf": "2026-10-17T00:00:00.000Z",
+    "asOfDate": "2026-10-17",
+    "solarBirthDate": "1992-10-24",
+    "gender": "MALE",
+    "currentAge": 33,
+    "elementCounts": {
+      "wood": 2,
+      "fire": 0,
+      "earth": 1,
+      "metal": 3,
+      "water": 2
+    },
+    "annualLuck": {
+      "year": 2026,
+      "startAt": "2026-02-03T20:02:00.000Z",
+      "endAtExclusive": "2027-02-04T01:46:00.000Z",
+      "startDate": "2026-02-04",
+      "endDate": "2027-02-04",
+      "pillar": {
+        "heavenlyStem": "병",
+        "earthlyBranch": "오"
+      },
+      "tenGods": {
+        "stem": "정재",
+        "branch": "편재"
+      }
+    },
+    "currentLuck": {
+      "startDate": "2017-07-31",
+      "endDate": "2027-07-30",
+      "ageFrom": 24,
+      "ageTo": 34,
+      "pillar": {
+        "heavenlyStem": "계",
+        "earthlyBranch": "축"
+      },
+      "korean": "계축"
+    },
+    "nextLuck": {
+      "startDate": "2027-07-31",
+      "endDate": "2037-07-30",
+      "ageFrom": 34,
+      "ageTo": 44,
+      "pillar": {
+        "heavenlyStem": "갑",
+        "earthlyBranch": "인"
+      },
+      "korean": "갑인"
+    }
+  },
+  "metadata": {
+    "engine": "manseryeok",
+    "version": "2.0.0",
+    "timeZone": "Asia/Seoul",
+    "dayBoundary": "midnight",
+    "ageBasis": "COMPLETED_YEARS",
+    "elementCountMethod": "SURFACE_EIGHT_CHARACTERS"
+  }
+}

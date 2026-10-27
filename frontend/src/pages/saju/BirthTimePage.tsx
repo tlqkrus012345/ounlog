@@ -12,24 +12,27 @@ function BirthTimePage() {
   )
 
   const [birthTime, setBirthTime] = useState(previousState?.birthTime ?? '')
-  const [birthTimeKnown, setBirthTimeKnown] = useState(
-    previousState?.birthTimeKnown ?? true,
-  )
 
-  const canProceed = !birthTimeKnown || birthTime !== ''
+  const canProceed = birthTime !== ''
 
-  if (!previousState?.birthDate || !previousState.calendarType) {
+  if (
+    !previousState?.birthDate ||
+    !previousState.calendarType ||
+    !previousState.gender ||
+    typeof previousState.isLeapMonth !== 'boolean'
+  ) {
     return <Navigate to="/saju" replace />
   }
 
-  const { birthDate, calendarType } = previousState
+  const { birthDate, calendarType, gender, isLeapMonth } = previousState
 
   const handleNext = () => {
     const form: SajuFormState = {
       birthDate,
       calendarType,
-      birthTime: birthTimeKnown ? birthTime : null,
-      birthTimeKnown,
+      birthTime,
+      gender,
+      isLeapMonth,
     }
 
     saveSajuForm(form)
@@ -61,31 +64,16 @@ function BirthTimePage() {
         </div>
 
         <div className="birth-time__form">
-          {birthTimeKnown && (
-            <div className="birth-time__field">
-              <label htmlFor="birthTime">출생시간</label>
+          <div className="birth-time__field">
+            <label htmlFor="birthTime">출생시간</label>
 
-              <input
-                id="birthTime"
-                type="time"
-                value={birthTime}
-                onChange={(event) => setBirthTime(event.target.value)}
-              />
-            </div>
-          )}
-
-          <button
-            type="button"
-            className="birth-time__unknown"
-            onClick={() => {
-              setBirthTimeKnown(!birthTimeKnown)
-              setBirthTime('')
-            }}
-          >
-            {birthTimeKnown
-              ? '태어난 시간을 모르겠어요'
-              : '출생시간을 입력할게요'}
-          </button>
+            <input
+              id="birthTime"
+              type="time"
+              value={birthTime}
+              onChange={(event) => setBirthTime(event.target.value)}
+            />
+          </div>
         </div>
 
         <button

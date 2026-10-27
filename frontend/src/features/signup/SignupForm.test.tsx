@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { delay, http, HttpResponse } from 'msw'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
+import { sajuAnalysisResponse } from '../../test/sajuAnalysisFixture'
 import LoginPage from '../../pages/auth/LoginPage'
 import { server } from '../../test/server'
 import { AuthProvider } from '../auth/AuthProvider'
@@ -17,8 +18,9 @@ const VALID_PASSWORD = 'password123'
 const SAJU_FORM: SajuFormState = {
   birthDate: '1995-03-21',
   birthTime: '14:30',
-  birthTimeKnown: true,
   calendarType: 'SOLAR',
+  gender: 'MALE',
+  isLeapMonth: false,
 }
 
 interface RenderFilledSignupFormOptions {
@@ -33,7 +35,9 @@ function FullAnalysisDestination() {
   return (
     <>
       <h1>전체 사주 분석</h1>
-      <output data-testid="analysis-result">{result?.result}</output>
+      <output data-testid="analysis-result">
+        {result?.result?.fiveElements.content ?? result?.legacyResult}
+      </output>
     </>
   )
 }
@@ -130,14 +134,11 @@ describe('SignupForm', () => {
           birthDate: '1995-03-21',
           birthTime: '14:30',
           calendarType: 'SOLAR',
+          gender: 'MALE',
+          isLeapMonth: false,
         })
 
-        return HttpResponse.json(
-          {
-            result: '전체 사주 분석 결과입니다.',
-          },
-          { status: 201 },
-        )
+        return HttpResponse.json(sajuAnalysisResponse(), { status: 201 })
       }),
     )
 
@@ -183,7 +184,7 @@ describe('SignupForm', () => {
       http.post('/v1/saju/analysis', () => {
         analysisRequestCount += 1
 
-        return HttpResponse.json({ result: '전체 사주 분석 결과입니다.' })
+        return HttpResponse.json(sajuAnalysisResponse())
       }),
     )
 
@@ -223,7 +224,7 @@ describe('SignupForm', () => {
       http.post('/v1/saju/analysis', () => {
         analysisRequestCount += 1
 
-        return HttpResponse.json({ result: '전체 사주 분석 결과입니다.' })
+        return HttpResponse.json(sajuAnalysisResponse())
       }),
     )
 
@@ -325,10 +326,7 @@ describe('SignupForm', () => {
         })
       }),
       http.post('/v1/saju/analysis', () => {
-        return HttpResponse.json(
-          { result: '전체 사주 분석 결과입니다.' },
-          { status: 201 },
-        )
+        return HttpResponse.json(sajuAnalysisResponse(), { status: 201 })
       }),
     )
 
@@ -375,10 +373,7 @@ describe('SignupForm', () => {
           resolveAnalysis = resolve
         })
 
-        return HttpResponse.json(
-          { result: '전체 사주 분석 결과입니다.' },
-          { status: 201 },
-        )
+        return HttpResponse.json(sajuAnalysisResponse(), { status: 201 })
       }),
     )
 
@@ -431,7 +426,7 @@ describe('SignupForm', () => {
         }
 
         return HttpResponse.json(
-          { result: '재시도로 생성한 전체 사주 분석 결과입니다.' },
+          sajuAnalysisResponse('재시도로 생성한 전체 사주 분석 결과입니다.'),
           { status: 201 },
         )
       }),

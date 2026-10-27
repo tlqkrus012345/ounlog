@@ -1,19 +1,22 @@
 import { describe, expect, it } from 'vitest'
-import { toSajuAnalysisRequest } from './mapper'
+import { toSajuAnalysisRequest, toSajuPreviewRequest } from './mapper'
 
 describe('toSajuAnalysisRequest', () => {
-  it('출생시간을 알면 입력한 시간을 전달한다', () => {
+  it('출생시간과 성별을 전달한다', () => {
     const request = toSajuAnalysisRequest({
       birthDate: '1995-03-21',
       birthTime: '14:30',
-      birthTimeKnown: true,
       calendarType: 'SOLAR',
+      gender: 'FEMALE',
+      isLeapMonth: false,
     })
 
     expect(request).toEqual({
       birthDate: '1995-03-21',
       birthTime: '14:30',
       calendarType: 'SOLAR',
+      gender: 'FEMALE',
+      isLeapMonth: false,
     })
   })
 
@@ -21,25 +24,32 @@ describe('toSajuAnalysisRequest', () => {
     const request = toSajuAnalysisRequest({
       birthDate: '1995-03-21',
       birthTime: '00:00',
-      birthTimeKnown: true,
       calendarType: 'LUNAR',
+      gender: 'MALE',
+      isLeapMonth: true,
     })
 
     expect(request.birthTime).toBe('00:00')
+    expect(request.isLeapMonth).toBe(true)
   })
+})
 
-  it('출생시간을 모르면 birthTime을 null로 전달한다', () => {
-    const request = toSajuAnalysisRequest({
+describe('toSajuPreviewRequest', () => {
+  it('출생시간과 성별을 전달한다', () => {
+    const request = toSajuPreviewRequest({
       birthDate: '1995-03-21',
-      birthTime: '00:00',
-      birthTimeKnown: false,
+      birthTime: '14:30',
       calendarType: 'SOLAR',
+      gender: 'MALE',
+      isLeapMonth: false,
     })
 
     expect(request).toEqual({
       birthDate: '1995-03-21',
-      birthTime: null,
+      birthTime: '14:30',
       calendarType: 'SOLAR',
+      gender: 'MALE',
+      isLeapMonth: false,
     })
   })
 })

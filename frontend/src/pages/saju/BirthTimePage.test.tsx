@@ -6,9 +6,14 @@ import { getSajuForm, saveSajuForm } from '../../features/saju/storage'
 import type { SajuFormState } from '../../features/saju/types'
 import BirthTimePage from './BirthTimePage'
 
-const PREVIOUS_STATE: Pick<SajuFormState, 'birthDate' | 'calendarType'> = {
+const PREVIOUS_STATE: Pick<
+  SajuFormState,
+  'birthDate' | 'calendarType' | 'gender' | 'isLeapMonth'
+> = {
   birthDate: '1998-08-21',
   calendarType: 'SOLAR',
+  gender: 'FEMALE',
+  isLeapMonth: false,
 }
 
 function StateDisplay() {
@@ -44,41 +49,32 @@ describe('BirthTimePage', () => {
 
     expect(screen.getByTestId('route-state')).toHaveTextContent(
       JSON.stringify({
-        ...PREVIOUS_STATE,
+        birthDate: '1998-08-21',
+        calendarType: 'SOLAR',
         birthTime: '14:32',
-        birthTimeKnown: true,
+        gender: 'FEMALE',
+        isLeapMonth: false,
       }),
     )
     expect(getSajuForm()).toEqual({
       ...PREVIOUS_STATE,
       birthTime: '14:32',
-      birthTimeKnown: true,
     })
   })
 
-  it('출생시간을 모르면 birthTime을 null로 전달한다', async () => {
-    const user = userEvent.setup()
+  it('출생시간을 입력하기 전에는 다음 단계로 진행할 수 없다', () => {
     renderBirthTimePage()
 
-    await user.click(
-      screen.getByRole('button', { name: '태어난 시간을 모르겠어요' }),
-    )
-    await user.click(screen.getByRole('button', { name: '다음' }))
-
-    expect(screen.getByTestId('route-state')).toHaveTextContent(
-      JSON.stringify({
-        ...PREVIOUS_STATE,
-        birthTime: null,
-        birthTimeKnown: false,
-      }),
-    )
+    expect(screen.getByRole('button', { name: '다음' })).toBeDisabled()
+    expect(
+      screen.queryByRole('button', { name: '태어난 시간을 모르겠어요' }),
+    ).not.toBeInTheDocument()
   })
 
   it('location.state가 없으면 sessionStorage의 입력값을 복구한다', () => {
     const storedForm: SajuFormState = {
       ...PREVIOUS_STATE,
       birthTime: '00:00',
-      birthTimeKnown: true,
     }
     saveSajuForm(storedForm)
 
