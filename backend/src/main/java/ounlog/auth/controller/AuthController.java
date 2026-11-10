@@ -14,10 +14,11 @@ import ounlog.auth.service.LoginResult;
 @RestController
 @RequestMapping("/v1/auth")
 @RequiredArgsConstructor
-public class AuthController {
+public class AuthController implements AuthApi {
 
     private final AuthenticationService authenticationService;
 
+    @Override
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         LoginResult result = authenticationService.login(request.toCommand());
