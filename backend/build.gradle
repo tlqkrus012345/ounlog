@@ -3,6 +3,7 @@ plugins {
     id 'org.springframework.boot' version '4.1.0'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'com.diffplug.spotless' version '8.10.1'
+    id 'org.springdoc.openapi-gradle-plugin' version '2.1.0'
 }
 
 group = 'ounlog'
@@ -28,7 +29,7 @@ dependencies {
     implementation 'org.springframework.security:spring-security-crypto'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.0'
 
     implementation platform("org.springframework.ai:spring-ai-bom:2.0.0")
     implementation 'org.springframework.ai:spring-ai-starter-model-openai'
@@ -50,6 +51,21 @@ dependencies {
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+openApi {
+    apiDocsUrl.set('http://127.0.0.1:18080/v3/api-docs.yaml')
+    outputDir.set(new File(projectDir, '../contracts'))
+    outputFileName.set('openapi.yaml')
+    waitTimeInSeconds.set(60)
+    customBootRun {
+        args.set([
+            '--spring.profiles.active=dev',
+            "--spring.config.import=optional:file:${projectDir}/.env[.properties][encoding=utf-8]",
+            '--server.address=127.0.0.1',
+            '--server.port=18080'
+        ])
+    }
 }
 
 tasks.named('test') {
