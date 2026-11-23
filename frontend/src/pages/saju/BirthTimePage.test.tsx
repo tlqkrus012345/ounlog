@@ -2,7 +2,11 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
-import { getSajuForm, saveSajuForm } from '../../features/saju/storage'
+import {
+  getSajuForm,
+  saveSajuForm,
+  saveSajuDraft,
+} from '../../features/saju/storage'
 import type { SajuFormState } from '../../features/saju/types'
 import BirthTimePage from './BirthTimePage'
 
@@ -26,6 +30,7 @@ function StateDisplay() {
 function renderBirthTimePage(
   state: Partial<SajuFormState> | null = PREVIOUS_STATE,
 ) {
+  if (state) saveSajuDraft(state)
   return render(
     <MemoryRouter initialEntries={[{ pathname: '/saju/birth-time', state }]}>
       <Routes>
@@ -38,7 +43,7 @@ function renderBirthTimePage(
 }
 
 describe('BirthTimePage', () => {
-  it('출생시간과 이전 단계 state를 다음 단계에 전달한다', async () => {
+  it('출생시간과 이전 초안을 저장하고 history에는 넣지 않는다', async () => {
     const user = userEvent.setup()
     renderBirthTimePage()
 
@@ -47,15 +52,7 @@ describe('BirthTimePage', () => {
     })
     await user.click(screen.getByRole('button', { name: '다음' }))
 
-    expect(screen.getByTestId('route-state')).toHaveTextContent(
-      JSON.stringify({
-        birthDate: '1998-08-21',
-        calendarType: 'SOLAR',
-        birthTime: '14:32',
-        gender: 'FEMALE',
-        isLeapMonth: false,
-      }),
-    )
+    expect(screen.getByTestId('route-state')).toHaveTextContent('null')
     expect(getSajuForm()).toEqual({
       ...PREVIOUS_STATE,
       birthTime: '14:32',

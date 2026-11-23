@@ -3,7 +3,7 @@ import { ApiError, ApiTimeoutError, InvalidApiResponseError } from './errors'
 
 const DEFAULT_TIMEOUT_MS = 10_000
 
-interface RequestOptions<TResponse> extends Omit<RequestInit, 'signal'> {
+export interface RequestOptions<TResponse> extends RequestInit {
   timeoutMs?: number
   validate: (value: unknown) => value is TResponse
 }
@@ -54,19 +54,35 @@ export async function requestWithStatus<TResponse>(
   url: string,
   options: RequestOptions<TResponse>,
 ): Promise<{ data: TResponse; status: number }> {
-  const { timeoutMs = DEFAULT_TIMEOUT_MS, validate, ...requestInit } = options
+  const {
+    timeoutMs = DEFAULT_TIMEOUT_MS,
+    validate,
+    signal,
+    ...requestInit
+  } = options
   const controller = new AbortController()
-  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs)
+  let timedOut = false
+  const timeoutId = window.setTimeout(() => {
+    timedOut = true
+    controller.abort()
+  }, timeoutMs)
+  const cancel = () => controller.abort(signal?.reason)
+  signal?.addEventListener('abort', cancel, { once: true })
+  if (signal?.aborted) cancel()
 
   try {
     const response = await fetch(url, {
       ...requestInit,
       signal: controller.signal,
     })
-    const responseBody = await parseJson(response)
+    const responseBody =
+      response.status === 204 ? undefined : await parseJson(response)
 
     if (!response.ok) {
-      if (!isApiErrorResponse(responseBody)) {
+      if (
+        !isApiErrorResponse(responseBody) ||
+        responseBody.status !== response.status
+      ) {
         throw new InvalidApiResponseError()
       }
       throw new ApiError(responseBody)
@@ -81,11 +97,14 @@ export async function requestWithStatus<TResponse>(
       status: response.status,
     }
   } catch (error) {
-    if (controller.signal.aborted) {
+    if (signal?.aborted)
+      throw signal.reason ?? new DOMException('Request cancelled', 'AbortError')
+    if (timedOut) {
       throw new ApiTimeoutError()
     }
     throw error
   } finally {
     window.clearTimeout(timeoutId)
+    signal?.removeEventListener('abort', cancel)
   }
 }

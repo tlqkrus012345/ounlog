@@ -1,46 +1,106 @@
+import { PRIVACY_CLEAR } from '../auth/privacy'
+import { authRuntime } from '../auth/runtime'
 import type { SajuFormState } from './types'
 
-const SAJU_FORM_STORAGE_KEY = 'saju-form'
-
-function isSajuFormState(value: unknown): value is SajuFormState {
-  if (typeof value !== 'object' || value === null) {
-    return false
+const KEY = 'saju-form'
+export function pickSajuInput(value: unknown): Partial<SajuFormState> | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  const v = value as Record<string, unknown>
+  const input: Partial<SajuFormState> = {}
+  for (const key of ['birthDate', 'birthTime'] as const) {
+    if (v[key] !== undefined) {
+      if (
+        typeof v[key] !== 'string' ||
+        (key === 'birthDate'
+          ? !/^\d{4}-\d{2}-\d{2}$/.test(v[key])
+          : !/^\d{2}:\d{2}$/.test(v[key]))
+      )
+        return null
+      if (
+        key === 'birthDate' &&
+        (v[key].startsWith('0000') ||
+          !Number.isFinite(Date.parse(v[key] + 'T00:00:00Z')) ||
+          new Date(v[key] + 'T00:00:00Z').toISOString().slice(0, 10) !== v[key])
+      )
+        return null
+      if (
+        key === 'birthTime' &&
+        (Number(v[key].slice(0, 2)) > 23 || Number(v[key].slice(3)) > 59)
+      )
+        return null
+      input[key] = v[key]
+    }
   }
-
-  const form = value as Record<string, unknown>
-
-  return (
-    typeof form.birthDate === 'string' &&
-    form.birthDate !== '' &&
-    typeof form.birthTime === 'string' &&
-    form.birthTime !== '' &&
-    (form.calendarType === 'SOLAR' || form.calendarType === 'LUNAR') &&
-    (form.gender === 'MALE' || form.gender === 'FEMALE') &&
-    typeof form.isLeapMonth === 'boolean' &&
-    (form.calendarType === 'LUNAR' || !form.isLeapMonth)
-  )
-}
-
-export function saveSajuForm(form: SajuFormState): void {
-  sessionStorage.setItem(SAJU_FORM_STORAGE_KEY, JSON.stringify(form))
-}
-
-export function getSajuForm(): SajuFormState | null {
-  const storedForm = sessionStorage.getItem(SAJU_FORM_STORAGE_KEY)
-
-  if (storedForm === null) {
-    return null
+  if (v.calendarType !== undefined) {
+    if (v.calendarType !== 'SOLAR' && v.calendarType !== 'LUNAR') return null
+    input.calendarType = v.calendarType
   }
-
+  if (v.gender !== undefined) {
+    if (v.gender !== 'MALE' && v.gender !== 'FEMALE') return null
+    input.gender = v.gender
+  }
+  if (v.isLeapMonth !== undefined) {
+    if (typeof v.isLeapMonth !== 'boolean') return null
+    input.isLeapMonth = v.isLeapMonth
+  }
+  if (input.calendarType === 'SOLAR' && input.isLeapMonth) return null
+  return input
+}
+export function readDraft() {
   try {
-    const parsedForm: unknown = JSON.parse(storedForm)
-
-    return isSajuFormState(parsedForm) ? parsedForm : null
+    const v = JSON.parse(sessionStorage.getItem(KEY) ?? 'null')
+    const input = pickSajuInput(v?.input)
+    return input &&
+      (v.ownerMemberId === null ||
+        (typeof v.ownerMemberId === 'string' &&
+          /^[1-9][0-9]*$/.test(v.ownerMemberId)))
+      ? { input, ownerMemberId: v.ownerMemberId as string | null }
+      : null
   } catch {
     return null
   }
 }
-
-export function clearSajuForm(): void {
-  sessionStorage.removeItem(SAJU_FORM_STORAGE_KEY)
+export function saveSajuDraft(
+  form: Partial<SajuFormState>,
+  owner = authRuntime.getSnapshot().session?.memberId ?? null,
+): void {
+  const input = pickSajuInput(form)
+  if (!input) return
+  try {
+    sessionStorage.setItem(KEY, JSON.stringify({ input, ownerMemberId: owner }))
+  } catch {
+    /* Storage is optional for the public input flow. */
+  }
 }
+export function getSajuDraft(): Partial<SajuFormState> | null {
+  const draft = readDraft()
+  const auth = authRuntime.getSnapshot()
+  if (
+    draft?.ownerMemberId &&
+    (auth.status !== 'authenticated' ||
+      auth.session?.memberId !== draft.ownerMemberId)
+  )
+    return null
+  return draft?.input ?? null
+}
+export function saveSajuForm(form: SajuFormState): void {
+  saveSajuDraft(form)
+}
+export function getSajuForm(): SajuFormState | null {
+  const form = getSajuDraft()
+  return form?.birthDate &&
+    form.birthTime &&
+    form.calendarType &&
+    form.gender &&
+    typeof form.isLeapMonth === 'boolean'
+    ? (form as SajuFormState)
+    : null
+}
+export function clearSajuForm(): void {
+  try {
+    sessionStorage.removeItem(KEY)
+  } catch {
+    /* Do not render stale data when storage is unavailable. */
+  }
+}
+window.addEventListener(PRIVACY_CLEAR, clearSajuForm)

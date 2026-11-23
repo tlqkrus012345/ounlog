@@ -1,5 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
 import { SignupForm } from '../features/signup/SignupForm'
+import { AuthLayout } from '../features/auth/AuthLayout'
+import { AuthBoundary } from '../features/auth/AuthBoundary'
 import LoginPage from '../pages/auth/LoginPage'
 import EntryPage from '../pages/entry/EntryPage'
 import BirthDatePage from '../pages/saju/BirthDatePage'
@@ -13,14 +15,23 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<SplashPage />} />
-      <Route path="/entry" element={<EntryPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/signup" element={<SignupForm />} />
-      <Route path="/saju" element={<BirthDatePage />} />
-      <Route path="/saju/birth-time" element={<BirthTimePage />} />
-      <Route path="/saju/confirm" element={<ConfirmPage />} />
-      <Route path="/saju/preview" element={<SajuPreviewPage />} />
-      <Route path="/saju/analysis" element={<SajuAnalysisPage />} />
+      <Route element={<AuthLayout />}>
+        <Route path="/entry" element={<EntryPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupForm />} />
+        <Route path="/saju" element={<BirthDatePage />} />
+        <Route path="/saju/birth-time" element={<BirthTimePage />} />
+        <Route path="/saju/confirm" element={<ConfirmPage />} />
+        <Route path="/saju/preview" element={<SajuPreviewPage />} />
+        <Route
+          path="/saju/analysis"
+          element={
+            <AuthBoundary>
+              <SajuAnalysisPage />
+            </AuthBoundary>
+          }
+        />
+      </Route>
     </Routes>
   )
 }

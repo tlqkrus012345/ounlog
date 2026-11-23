@@ -1,3 +1,6 @@
+import { beforeEach } from 'vitest'
+import { authRuntime } from '../auth/runtime'
+import { tokenResponse } from '../../test/authFixture'
 import { sajuAnalysisResponse } from '../../test/sajuAnalysisFixture'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
@@ -94,6 +97,14 @@ describe('createSajuPreview', () => {
 })
 
 describe('createSajuAnalysis', () => {
+  beforeEach(async () => {
+    server.use(
+      http.post('/v1/auth/refresh', () =>
+        HttpResponse.json(tokenResponse('1', ACCESS_TOKEN)),
+      ),
+    )
+    await authRuntime.restore()
+  })
   it('구형 문자열 결과는 명시적인 legacyResult 응답으로 받는다', async () => {
     const legacy = {
       result: null,
@@ -102,9 +113,10 @@ describe('createSajuAnalysis', () => {
     }
     server.use(http.post('/v1/saju/analysis', () => HttpResponse.json(legacy)))
 
-    await expect(
-      createSajuAnalysis(ANALYSIS_REQUEST, ACCESS_TOKEN),
-    ).resolves.toEqual({ ...legacy, status: 'EXISTING' })
+    await expect(createSajuAnalysis(ANALYSIS_REQUEST)).resolves.toEqual({
+      ...legacy,
+      status: 'EXISTING',
+    })
   })
 
   it.each([
@@ -117,9 +129,9 @@ describe('createSajuAnalysis', () => {
       http.post('/v1/saju/analysis', () => HttpResponse.json(response)),
     )
 
-    await expect(
-      createSajuAnalysis(ANALYSIS_REQUEST, ACCESS_TOKEN),
-    ).rejects.toBeInstanceOf(InvalidApiResponseError)
+    await expect(createSajuAnalysis(ANALYSIS_REQUEST)).rejects.toBeInstanceOf(
+      InvalidApiResponseError,
+    )
   })
 
   it('Access Token과 사주 정보를 전달하고 정상 응답을 반환한다', async () => {
@@ -134,9 +146,7 @@ describe('createSajuAnalysis', () => {
       }),
     )
 
-    await expect(
-      createSajuAnalysis(ANALYSIS_REQUEST, ACCESS_TOKEN),
-    ).resolves.toEqual({
+    await expect(createSajuAnalysis(ANALYSIS_REQUEST)).resolves.toEqual({
       ...sajuAnalysisResponse(),
       status: 'CREATED',
     })
@@ -152,9 +162,7 @@ describe('createSajuAnalysis', () => {
       ),
     )
 
-    await expect(
-      createSajuAnalysis(ANALYSIS_REQUEST, ACCESS_TOKEN),
-    ).resolves.toEqual({
+    await expect(createSajuAnalysis(ANALYSIS_REQUEST)).resolves.toEqual({
       ...sajuAnalysisResponse('기존 전체 사주 분석 결과입니다.'),
       status: 'EXISTING',
     })
@@ -167,9 +175,9 @@ describe('createSajuAnalysis', () => {
       ),
     )
 
-    await expect(
-      createSajuAnalysis(ANALYSIS_REQUEST, ACCESS_TOKEN),
-    ).rejects.toBeInstanceOf(InvalidApiResponseError)
+    await expect(createSajuAnalysis(ANALYSIS_REQUEST)).rejects.toBeInstanceOf(
+      InvalidApiResponseError,
+    )
   })
 
   it('백엔드 오류 응답을 ApiError로 변환한다', async () => {
@@ -187,9 +195,9 @@ describe('createSajuAnalysis', () => {
       ),
     )
 
-    await expect(
-      createSajuAnalysis(ANALYSIS_REQUEST, ACCESS_TOKEN),
-    ).rejects.toBeInstanceOf(ApiError)
+    await expect(createSajuAnalysis(ANALYSIS_REQUEST)).rejects.toBeInstanceOf(
+      ApiError,
+    )
   })
 
   it('성공 응답이 API 계약과 다르면 InvalidApiResponseError를 던진다', async () => {
@@ -199,8 +207,8 @@ describe('createSajuAnalysis', () => {
       ),
     )
 
-    await expect(
-      createSajuAnalysis(ANALYSIS_REQUEST, ACCESS_TOKEN),
-    ).rejects.toBeInstanceOf(InvalidApiResponseError)
+    await expect(createSajuAnalysis(ANALYSIS_REQUEST)).rejects.toBeInstanceOf(
+      InvalidApiResponseError,
+    )
   })
 })

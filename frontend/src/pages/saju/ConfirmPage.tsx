@@ -1,22 +1,16 @@
 import { useState } from 'react'
-import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { createSajuPreview } from '../../features/saju/api'
 import { toSajuPreviewRequest } from '../../features/saju/mapper'
 import { getSajuForm } from '../../features/saju/storage'
 import { ApiTimeoutError } from '../../shared/api/errors'
-import type {
-  SajuFormState,
-  SajuPreviewResponse,
-} from '../../features/saju/types'
+import type { SajuPreviewResponse } from '../../features/saju/types'
 import './ConfirmPage.css'
 
 function ConfirmPage() {
   const navigate = useNavigate()
-  const location = useLocation()
 
-  const [state] = useState(
-    () => (location.state as SajuFormState | null) ?? getSajuForm(),
-  )
+  const [state] = useState(getSajuForm)
 
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)

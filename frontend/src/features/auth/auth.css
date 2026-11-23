@@ -1,0 +1,123 @@
+.login-page,
+.auth-controls,
+.auth-status {
+  font-family: var(--font-family-base);
+  color: var(--color-text);
+}
+.login-page {
+  box-sizing: border-box;
+  min-height: 100dvh;
+  background: var(--color-background);
+  padding: 2rem var(--page-gutter);
+}
+.login-panel {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: 1.5rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-card);
+}
+.login-panel h1 {
+  font-size: 1.5rem;
+  line-height: 1.42;
+  margin: 0 0 1.5rem;
+}
+.login-panel p,
+.auth-controls p,
+.auth-status p {
+  overflow-wrap: anywhere;
+  line-height: 1.6875;
+}
+.login-form {
+  display: grid;
+  gap: 1.5rem;
+}
+.login-field {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.login-field input {
+  min-width: 0;
+  width: 100%;
+  min-height: var(--input-min-height);
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-control);
+  padding: 0.75rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 1rem;
+}
+.login-field input[aria-invalid='true'] {
+  border-color: var(--color-error);
+}
+.auth-primary,
+.auth-secondary {
+  min-height: var(--button-min-height);
+  border-radius: var(--radius-control);
+  padding: 0.75rem 1rem;
+  font: inherit;
+  font-weight: 600;
+  font-size: 1rem;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  transition: background var(--motion-interaction);
+}
+.auth-primary {
+  background: var(--color-primary);
+  color: white;
+  border: 1px solid var(--color-primary);
+}
+.auth-primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+.auth-primary:active:not(:disabled) {
+  background: var(--color-primary-pressed);
+}
+.auth-secondary {
+  color: var(--color-primary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-control);
+}
+.auth-primary:disabled,
+.auth-secondary:disabled {
+  cursor: wait;
+  background: var(--color-sand);
+  color: var(--color-text);
+}
+.login-field input:focus-visible,
+.auth-primary:focus-visible,
+.auth-secondary:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+.auth-error {
+  color: var(--color-error);
+  font-size: 1rem;
+  margin: 0;
+}
+.auth-controls,
+.auth-status {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: 0.75rem var(--page-gutter);
+}
+.auth-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-primary,
+  .auth-secondary {
+    transition: none;
+  }
+}

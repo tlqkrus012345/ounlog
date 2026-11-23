@@ -6,6 +6,7 @@ import * as sajuApi from '../../features/saju/api'
 import { ApiTimeoutError } from '../../shared/api/errors'
 import { saveSajuForm } from '../../features/saju/storage'
 import type { SajuFormState } from '../../features/saju/types'
+import { AuthProvider } from '../../features/auth/AuthProvider'
 import ConfirmPage from './ConfirmPage'
 import SajuPreviewPage from './SajuPreviewPage'
 
@@ -24,14 +25,17 @@ function LocationDisplay() {
 }
 
 function renderConfirmPage() {
+  saveSajuForm(FORM_STATE)
   return render(
     <MemoryRouter
       initialEntries={[{ pathname: '/saju/confirm', state: FORM_STATE }]}
     >
-      <Routes>
-        <Route path="/saju/confirm" element={<ConfirmPage />} />
-        <Route path="/saju/preview" element={<SajuPreviewPage />} />
-      </Routes>
+      <AuthProvider>
+        <Routes>
+          <Route path="/saju/confirm" element={<ConfirmPage />} />
+          <Route path="/saju/preview" element={<SajuPreviewPage />} />
+        </Routes>
+      </AuthProvider>
       <LocationDisplay />
     </MemoryRouter>,
   )
@@ -40,10 +44,12 @@ function renderConfirmPage() {
 function renderConfirmPageWithoutLocationState() {
   return render(
     <MemoryRouter initialEntries={['/saju/confirm']}>
-      <Routes>
-        <Route path="/saju/confirm" element={<ConfirmPage />} />
-        <Route path="/saju" element={<LocationDisplay />} />
-      </Routes>
+      <AuthProvider>
+        <Routes>
+          <Route path="/saju/confirm" element={<ConfirmPage />} />
+          <Route path="/saju" element={<LocationDisplay />} />
+        </Routes>
+      </AuthProvider>
     </MemoryRouter>,
   )
 }

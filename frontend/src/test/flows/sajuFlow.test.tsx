@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
+import { AuthProvider } from '../../features/auth/AuthProvider'
 import { AppRoutes } from '../../routes/AppRoutes'
 import { server } from '../server'
 
@@ -29,7 +30,9 @@ describe('사주 분석 사용자 흐름', () => {
 
     render(
       <MemoryRouter initialEntries={['/saju']}>
-        <AppRoutes />
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
       </MemoryRouter>,
     )
 

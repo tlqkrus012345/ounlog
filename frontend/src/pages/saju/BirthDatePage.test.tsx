@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
-import { saveSajuForm } from '../../features/saju/storage'
+import { saveSajuForm, getSajuDraft } from '../../features/saju/storage'
 import BirthDatePage from './BirthDatePage'
 
 function StateDisplay() {
@@ -41,7 +41,7 @@ describe('BirthDatePage', () => {
     expect(screen.getByRole('button', { name: '다음' })).toBeDisabled()
   })
 
-  it('생년월일, 달력 유형, 성별과 윤달 여부를 다음 단계의 state로 전달한다', async () => {
+  it('생년월일, 달력 유형, 성별과 윤달 여부를 다음 단계에 초안을 전달하고 history에는 넣지 않는다', async () => {
     const user = userEvent.setup()
     render(
       <MemoryRouter initialEntries={['/saju']}>
@@ -61,14 +61,13 @@ describe('BirthDatePage', () => {
     await user.click(screen.getByRole('button', { name: '여성' }))
     await user.click(screen.getByRole('button', { name: '다음' }))
 
-    expect(screen.getByTestId('route-state')).toHaveTextContent(
-      JSON.stringify({
-        birthDate: '1998-08-21',
-        calendarType: 'LUNAR',
-        gender: 'FEMALE',
-        isLeapMonth: true,
-      }),
-    )
+    expect(screen.getByTestId('route-state')).toHaveTextContent('null')
+    expect(getSajuDraft()).toEqual({
+      birthDate: '1998-08-21',
+      calendarType: 'LUNAR',
+      gender: 'FEMALE',
+      isLeapMonth: true,
+    })
   })
 
   it('sessionStorage의 기존 입력값으로 폼을 복구한다', () => {

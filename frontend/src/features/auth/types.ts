@@ -6,10 +6,29 @@ export interface LoginRequest {
 export interface LoginResponse {
   accessToken: string
   tokenType: 'Bearer'
+  accessTokenExpiresAt: string
+  session: SessionResponse
 }
 
-export interface AuthContextValue {
+export interface SessionResponse {
+  memberId: string
+  sessionExpiresAt: string
+  absoluteExpiresAt: string
+}
+
+export interface AuthSnapshot {
+  status:
+    'checking' | 'authenticated' | 'guest' | 'reauthRequired' | 'checkError'
   accessToken: string | null
-  setAccessToken: (token: string) => void
-  clearAccessToken: () => void
+  session: SessionResponse | null
+  epoch: string
+  signInRequired?: boolean
+  privacyRevision: number
+  logoutState: 'idle' | 'pending' | 'error'
+}
+
+export interface AuthContextValue extends AuthSnapshot {
+  login: (command: LoginRequest) => Promise<LoginResponse>
+  logout: () => Promise<void>
+  retry: () => Promise<void>
 }

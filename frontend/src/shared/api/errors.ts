@@ -9,6 +9,7 @@ export interface ApiErrorResponse {
   code: string
   message: string
   path: string
+  timestamp?: string
   errors?: FieldError[]
 }
 
@@ -16,6 +17,7 @@ export class ApiError extends Error {
   readonly status: number
   readonly code: string
   readonly fieldErrors: FieldError[]
+  readonly timestamp?: string
 
   constructor(response: ApiErrorResponse) {
     super(response.message)
@@ -23,6 +25,7 @@ export class ApiError extends Error {
     this.status = response.status
     this.code = response.code
     this.fieldErrors = response.errors ?? []
+    this.timestamp = response.timestamp
   }
 }
 

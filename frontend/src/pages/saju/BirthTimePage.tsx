@@ -1,17 +1,23 @@
-import { useState } from 'react'
-import { Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { getSajuForm, saveSajuForm } from '../../features/saju/storage'
+import { useEffect, useState } from 'react'
+import { Navigate, useNavigate } from 'react-router-dom'
+import {
+  getSajuDraft,
+  saveSajuDraft,
+  saveSajuForm,
+} from '../../features/saju/storage'
 import type { SajuFormState } from '../../features/saju/types'
 import './BirthTimePage.css'
 
 function BirthTimePage() {
   const navigate = useNavigate()
-  const location = useLocation()
-  const [previousState] = useState(
-    () => (location.state as Partial<SajuFormState> | null) ?? getSajuForm(),
-  )
+  const [previousState] = useState(getSajuDraft)
 
   const [birthTime, setBirthTime] = useState(previousState?.birthTime ?? '')
+
+  useEffect(() => {
+    if (previousState)
+      saveSajuDraft({ ...previousState, birthTime: birthTime || undefined })
+  }, [previousState, birthTime])
 
   const canProceed = birthTime !== ''
 
@@ -36,7 +42,7 @@ function BirthTimePage() {
     }
 
     saveSajuForm(form)
-    navigate('/saju/confirm', { state: form })
+    navigate('/saju/confirm')
   }
 
   return (

@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
+import { AuthProvider } from '../../features/auth/AuthProvider'
 import EntryPage from './EntryPage'
 
 function Destination() {
@@ -17,15 +18,17 @@ describe('EntryPage', () => {
     const user = userEvent.setup()
     render(
       <MemoryRouter initialEntries={['/entry']}>
-        <Routes>
-          <Route path="/entry" element={<EntryPage />} />
-          <Route path="*" element={<Destination />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/entry" element={<EntryPage />} />
+            <Route path="*" element={<Destination />} />
+          </Routes>
+        </AuthProvider>
       </MemoryRouter>,
     )
 
     await user.click(
-      screen.getByRole('button', { name: new RegExp(`^${buttonName}`) }),
+      await screen.findByRole('button', { name: new RegExp(`^${buttonName}`) }),
     )
 
     expect(screen.getByTestId('location')).toHaveTextContent(path)

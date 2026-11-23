@@ -1,15 +1,17 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { delay, http, HttpResponse } from 'msw'
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import { sajuAnalysisResponse } from '../../test/sajuAnalysisFixture'
 import LoginPage from '../../pages/auth/LoginPage'
+import { tokenResponse } from '../../test/authFixture'
+import { getAnalysisResult } from '../saju/result'
 import { server } from '../../test/server'
 import { AuthProvider } from '../auth/AuthProvider'
 import { useAuth } from '../auth/useAuth'
 import { saveSajuForm } from '../saju/storage'
-import type { SajuAnalysisCreationResult, SajuFormState } from '../saju/types'
+import type { SajuFormState } from '../saju/types'
 import { SignupForm } from './SignupForm'
 
 const VALID_EMAIL = 'test@example.com'
@@ -29,8 +31,7 @@ interface RenderFilledSignupFormOptions {
 }
 
 function FullAnalysisDestination() {
-  const location = useLocation()
-  const result = location.state as SajuAnalysisCreationResult | null
+  const result = getAnalysisResult()
 
   return (
     <>
@@ -123,10 +124,7 @@ describe('SignupForm', () => {
           password: VALID_PASSWORD,
         })
 
-        return HttpResponse.json({
-          accessToken: 'access-token',
-          tokenType: 'Bearer',
-        })
+        return HttpResponse.json(tokenResponse())
       }),
       http.post('/v1/saju/analysis', async ({ request }) => {
         expect(request.headers.get('Authorization')).toBe('Bearer access-token')
@@ -176,10 +174,7 @@ describe('SignupForm', () => {
       http.post('/v1/auth/login', () => {
         loginRequestCount += 1
 
-        return HttpResponse.json({
-          accessToken: 'access-token',
-          tokenType: 'Bearer',
-        })
+        return HttpResponse.json(tokenResponse())
       }),
       http.post('/v1/saju/analysis', () => {
         analysisRequestCount += 1
@@ -236,7 +231,7 @@ describe('SignupForm', () => {
       await screen.findByRole('heading', { name: '로그인' }),
     ).toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent(
-      '회원가입은 완료되었습니다. 다시 로그인해주세요.',
+      '회원가입은 완료되었습니다. 다시 로그인해 주세요.',
     )
     expect(analysisRequestCount).toBe(0)
   })
@@ -320,10 +315,7 @@ describe('SignupForm', () => {
         )
       }),
       http.post('/v1/auth/login', () => {
-        return HttpResponse.json({
-          accessToken: 'access-token',
-          tokenType: 'Bearer',
-        })
+        return HttpResponse.json(tokenResponse())
       }),
       http.post('/v1/saju/analysis', () => {
         return HttpResponse.json(sajuAnalysisResponse(), { status: 201 })
@@ -363,10 +355,7 @@ describe('SignupForm', () => {
         return HttpResponse.json({ email: VALID_EMAIL }, { status: 201 })
       }),
       http.post('/v1/auth/login', () => {
-        return HttpResponse.json({
-          accessToken: 'access-token',
-          tokenType: 'Bearer',
-        })
+        return HttpResponse.json(tokenResponse())
       }),
       http.post('/v1/saju/analysis', async () => {
         await new Promise<void>((resolve) => {
@@ -405,10 +394,7 @@ describe('SignupForm', () => {
       }),
       http.post('/v1/auth/login', () => {
         loginRequestCount += 1
-        return HttpResponse.json({
-          accessToken: 'access-token',
-          tokenType: 'Bearer',
-        })
+        return HttpResponse.json(tokenResponse())
       }),
       http.post('/v1/saju/analysis', () => {
         analysisRequestCount += 1

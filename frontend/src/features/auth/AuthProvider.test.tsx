@@ -1,40 +1,47 @@
 import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { StrictMode } from 'react'
+import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
 import { AuthProvider } from './AuthProvider'
 import { useAuth } from './useAuth'
+import { server } from '../../test/server'
+import { tokenResponse } from '../../test/authFixture'
 
-function AuthConsumer() {
-  const { accessToken, setAccessToken, clearAccessToken } = useAuth()
-
+function State() {
+  const auth = useAuth()
   return (
-    <>
-      <output>{accessToken ?? 'no-token'}</output>
-      <button type="button" onClick={() => setAccessToken('access-token')}>
-        token 저장
-      </button>
-      <button type="button" onClick={clearAccessToken}>
-        token 삭제
-      </button>
-    </>
+    <output>
+      {auth.status}:{auth.session?.memberId}
+    </output>
   )
 }
-
 describe('AuthProvider', () => {
-  it('Access Token을 memory에 저장하고 제거한다', async () => {
-    const user = userEvent.setup()
+  it('StrictMode에서도 초기 복원을 한 번만 수행하고 회원을 확인한다', async () => {
+    let calls = 0
+    server.use(
+      http.post('/v1/auth/refresh', () => {
+        calls++
+        return HttpResponse.json(tokenResponse())
+      }),
+    )
+    render(
+      <StrictMode>
+        <AuthProvider>
+          <State />
+        </AuthProvider>
+      </StrictMode>,
+    )
+    expect(await screen.findByText('authenticated:1')).toBeInTheDocument()
+    expect(calls).toBe(1)
+    expect(localStorage.getItem('accessToken')).toBeNull()
+  })
+  it('연결 오류를 미로그인으로 처리하지 않는다', async () => {
+    server.use(http.post('/v1/auth/refresh', () => HttpResponse.error()))
     render(
       <AuthProvider>
-        <AuthConsumer />
+        <State />
       </AuthProvider>,
     )
-
-    expect(screen.getByText('no-token')).toBeInTheDocument()
-
-    await user.click(screen.getByRole('button', { name: 'token 저장' }))
-    expect(screen.getByText('access-token')).toBeInTheDocument()
-
-    await user.click(screen.getByRole('button', { name: 'token 삭제' }))
-    expect(screen.getByText('no-token')).toBeInTheDocument()
+    expect(await screen.findByText('checkError:')).toBeInTheDocument()
   })
 })

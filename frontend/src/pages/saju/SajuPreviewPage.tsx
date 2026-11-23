@@ -1,3 +1,8 @@
+import { useState } from 'react'
+import { useAuth } from '../../features/auth/useAuth'
+import { createSajuAnalysis } from '../../features/saju/api'
+import { getSajuForm } from '../../features/saju/storage'
+import { toSajuAnalysisRequest } from '../../features/saju/mapper'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import type { SajuPreviewResponse } from '../../features/saju/types'
 import './SajuPreviewPage.css'
@@ -5,11 +10,38 @@ import './SajuPreviewPage.css'
 function SajuPreviewPage() {
   const location = useLocation()
   const navigate = useNavigate()
+  const auth = useAuth()
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState(false)
+  async function showFull() {
+    if (pending) return
+    if (auth.status !== 'authenticated') {
+      navigate('/signup')
+      return
+    }
+    const input = getSajuForm()
+    if (!input) {
+      navigate('/saju')
+      return
+    }
+    setPending(true)
+    setError(false)
+    try {
+      await createSajuAnalysis(toSajuAnalysisRequest(input))
+      navigate('/saju/analysis')
+    } catch {
+      setError(true)
+    } finally {
+      setPending(false)
+    }
+  }
 
   const result = location.state as SajuPreviewResponse | null
 
   if (!result) {
-    return <Navigate to="/saju" replace />
+    return (
+      <Navigate to={location.state?.resumed ? '/entry' : '/saju'} replace />
+    )
   }
 
   return (
@@ -30,12 +62,19 @@ function SajuPreviewPage() {
           </p>
         </div>
 
+        {error && <p role="alert">분석 중 문제가 발생했습니다.</p>}
         <button
           type="button"
           className="preview__next"
-          onClick={() => navigate('/signup')}
+          disabled={
+            pending ||
+            auth.status === 'checking' ||
+            auth.status === 'checkError' ||
+            auth.logoutState !== 'idle'
+          }
+          onClick={() => void showFull()}
         >
-          전체 사주 분석 보기
+          {pending ? '분석 중...' : '전체 사주 분석 보기'}
         </button>
       </section>
     </main>

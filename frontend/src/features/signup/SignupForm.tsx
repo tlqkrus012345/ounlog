@@ -1,6 +1,5 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { login } from '../auth/api'
 import { useAuth } from '../auth/useAuth'
 import { createSajuAnalysis } from '../saju/api'
 import { toSajuAnalysisRequest } from '../saju/mapper'
@@ -30,7 +29,14 @@ function convertFieldErrors(errors: FieldError[]): SignupFieldErrors {
 
 export function SignupForm() {
   const navigate = useNavigate()
-  const { accessToken, setAccessToken } = useAuth()
+  const mounted = useRef(true)
+  useEffect(() => {
+    mounted.current = true
+    return () => {
+      mounted.current = false
+    }
+  }, [])
+  const { accessToken, login } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
@@ -41,7 +47,7 @@ export function SignupForm() {
 
   const isSubmitting = submissionStep !== 'idle'
 
-  async function runSajuAnalysis(token: string) {
+  async function runSajuAnalysis() {
     const sajuForm = getSajuForm()
 
     if (!sajuForm) {
@@ -53,11 +59,10 @@ export function SignupForm() {
 
     try {
       const analysisRequest = toSajuAnalysisRequest(sajuForm)
-      const analysisResult = await createSajuAnalysis(analysisRequest, token)
+      await createSajuAnalysis(analysisRequest)
 
-      navigate('/saju/analysis', {
-        state: analysisResult,
-      })
+      if (!mounted.current) return
+      navigate('/saju/analysis')
     } catch {
       setAnalysisFailed(true)
       setFormError('사주 분석을 생성하지 못했습니다. 다시 시도해주세요.')
@@ -98,23 +103,20 @@ export function SignupForm() {
         return
       }
 
-      let loginAccessToken: string
-
+      if (!mounted.current) return
       try {
         setSubmissionStep('login')
-        const response = await login({ email, password })
-        loginAccessToken = response.accessToken
-        setAccessToken(loginAccessToken)
+        await login({ email, password })
       } catch {
         navigate('/login', {
           state: {
-            message: '회원가입은 완료되었습니다. 다시 로그인해주세요.',
+            reason: 'signup-complete',
           },
         })
         return
       }
 
-      await runSajuAnalysis(loginAccessToken)
+      if (mounted.current) await runSajuAnalysis()
     } finally {
       setSubmissionStep('idle')
     }
@@ -128,7 +130,7 @@ export function SignupForm() {
     setFormError('')
 
     try {
-      await runSajuAnalysis(accessToken)
+      if (mounted.current) await runSajuAnalysis()
     } finally {
       setSubmissionStep('idle')
     }

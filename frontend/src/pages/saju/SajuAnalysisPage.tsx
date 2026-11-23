@@ -1,4 +1,11 @@
-import { Navigate, useLocation } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { getSajuAnalysis } from '../../features/saju/api'
+import { getAnalysisResult } from '../../features/saju/result'
+import { useAuth } from '../../features/auth/useAuth'
+import { AuthStatus } from '../../features/auth/AuthStatus'
+import { authCopy } from '../../features/auth/copy'
+import { ApiError } from '../../shared/api/errors'
 import type { SajuAnalysisCreationResult } from '../../features/saju/types'
 import './SajuAnalysisPage.css'
 
@@ -13,12 +20,51 @@ const SECTIONS = [
 ] as const
 
 function SajuAnalysisPage() {
-  const location = useLocation()
-  const analysis = location.state as SajuAnalysisCreationResult | null
-
-  if (!analysis) {
-    return <Navigate to="/saju" replace />
-  }
+  const auth = useAuth()
+  const [analysis, setAnalysis] = useState<SajuAnalysisCreationResult | null>(
+    getAnalysisResult,
+  )
+  const [failed, setFailed] = useState(false)
+  const [missing, setMissing] = useState(false)
+  const [attempt, setAttempt] = useState(0)
+  useEffect(() => {
+    if (getAnalysisResult()) return
+    const controller = new AbortController()
+    void getSajuAnalysis(controller.signal)
+      .then((result) => {
+        if (!controller.signal.aborted)
+          setAnalysis({ ...result, status: 'EXISTING' })
+      })
+      .catch((error) => {
+        if (controller.signal.aborted) return
+        if (error instanceof ApiError && error.status === 404) setMissing(true)
+        else setFailed(true)
+      })
+    return () => controller.abort()
+  }, [attempt])
+  if (auth.status !== 'authenticated') return <AuthStatus />
+  if (missing) return <Navigate to="/entry" replace />
+  if (failed)
+    return (
+      <div className="auth-status">
+        <p role="alert">{authCopy.checkError}</p>
+        <button
+          className="auth-secondary"
+          onClick={() => {
+            setFailed(false)
+            setAttempt((n) => n + 1)
+          }}
+        >
+          다시 시도
+        </button>
+      </div>
+    )
+  if (!analysis)
+    return (
+      <p role="status" className="auth-status">
+        결과를 불러오고 있습니다.
+      </p>
+    )
 
   return (
     <main className="analysis">

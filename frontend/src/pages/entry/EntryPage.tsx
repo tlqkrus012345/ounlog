@@ -1,12 +1,18 @@
 import { useNavigate } from 'react-router-dom'
 import './EntryPage.css'
+import { AuthControls } from '../../features/auth/AuthControls'
+import { useAuth } from '../../features/auth/useAuth'
 
 function EntryPage() {
   const navigate = useNavigate()
+  const auth = useAuth()
 
   return (
     <main className="entry">
       <section className="entry__container">
+        {auth.status !== 'guest' && auth.status !== 'reauthRequired' && (
+          <AuthControls />
+        )}
         <header className="entry__header">
           <h1>오늘 무엇을 알고 싶나요?</h1>
           <p>지금 필요한 방식으로 가볍게 시작해보세요.</p>
@@ -16,6 +22,7 @@ function EntryPage() {
           <button
             type="button"
             className="entry-card"
+            disabled={auth.logoutState === 'pending'}
             onClick={() => navigate('/saju')}
           >
             <h2>사주</h2>
@@ -25,6 +32,7 @@ function EntryPage() {
           <button
             type="button"
             className="entry-card"
+            disabled={auth.logoutState === 'pending'}
             onClick={() => navigate('/tarot')}
           >
             <h2>타로</h2>
@@ -32,16 +40,11 @@ function EntryPage() {
           </button>
         </div>
 
-        <footer className="entry__footer">
-          <span className="entry__footer-text">이미 계정이 있으신가요?</span>
-          <button
-            type="button"
-            className="entry__login-btn"
-            onClick={() => navigate('/login')}
-          >
-            로그인하기
-          </button>
-        </footer>
+        {(auth.status === 'guest' || auth.status === 'reauthRequired') && (
+          <footer className="entry__footer">
+            <AuthControls />
+          </footer>
+        )}
       </section>
     </main>
   )

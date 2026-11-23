@@ -1,8 +1,14 @@
-import { render, screen } from '@testing-library/react'
+import { render as renderView, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
+import { type ReactElement } from 'react'
+import { AuthProvider } from '../../features/auth/AuthProvider'
 import SajuPreviewPage from './SajuPreviewPage'
+
+function render(ui: ReactElement) {
+  return renderView(<AuthProvider>{ui}</AuthProvider>)
+}
 
 function SajuDestination() {
   return <output data-testid="location">{useLocation().pathname}</output>
@@ -45,10 +51,13 @@ describe('SajuPreviewPage', () => {
       </MemoryRouter>,
     )
 
-    expect(
-      screen.getByText('2026년 당신의 핵심 키워드는'),
-    ).toBeInTheDocument()
+    expect(screen.getByText('2026년 당신의 핵심 키워드는')).toBeInTheDocument()
 
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: '전체 사주 분석 보기' }),
+      ).toBeEnabled(),
+    )
     await user.click(
       screen.getByRole('button', { name: '전체 사주 분석 보기' }),
     )

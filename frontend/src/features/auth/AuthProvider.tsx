@@ -1,17 +1,27 @@
-import { useMemo, useState, type PropsWithChildren } from 'react'
+import { useEffect, useSyncExternalStore, type PropsWithChildren } from 'react'
 import { AuthContext } from './AuthContext'
+import { authRuntime } from './runtime'
 
 export function AuthProvider({ children }: PropsWithChildren) {
-  const [accessToken, setAccessToken] = useState<string | null>(null)
-
-  const value = useMemo(
-    () => ({
-      accessToken,
-      setAccessToken,
-      clearAccessToken: () => setAccessToken(null),
-    }),
-    [accessToken],
+  const snapshot = useSyncExternalStore(
+    authRuntime.subscribe,
+    authRuntime.getSnapshot,
   )
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  useEffect(() => {
+    authRuntime.connect()
+    if (authRuntime.getSnapshot().status === 'checking')
+      void authRuntime.restore()
+  }, [])
+  return (
+    <AuthContext.Provider
+      value={{
+        ...snapshot,
+        login: authRuntime.login,
+        logout: authRuntime.logout,
+        retry: authRuntime.verify,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  )
 }

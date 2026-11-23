@@ -1,12 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getSajuForm } from '../../features/saju/storage'
+import { getSajuDraft, saveSajuDraft } from '../../features/saju/storage'
 import type { CalendarType, Gender } from '../../features/saju/types'
 import './BirthDatePage.css'
 
 function BirthDatePage() {
   const navigate = useNavigate()
-  const [storedForm] = useState(getSajuForm)
+  const [storedForm] = useState(getSajuDraft)
 
   const [birthDate, setBirthDate] = useState(storedForm?.birthDate ?? '')
   const [calendarType, setCalendarType] = useState<CalendarType>(
@@ -16,8 +16,19 @@ function BirthDatePage() {
     storedForm?.gender ?? null,
   )
   const [isLeapMonth, setIsLeapMonth] = useState<boolean | null>(
-    storedForm?.calendarType === 'LUNAR' ? storedForm.isLeapMonth : false,
+    storedForm?.calendarType === 'LUNAR'
+      ? (storedForm.isLeapMonth ?? null)
+      : false,
   )
+
+  useEffect(() => {
+    saveSajuDraft({
+      birthDate: birthDate || undefined,
+      calendarType,
+      gender: gender ?? undefined,
+      isLeapMonth: isLeapMonth ?? undefined,
+    })
+  }, [birthDate, calendarType, gender, isLeapMonth])
 
   const canProceed =
     birthDate !== '' &&
@@ -167,16 +178,15 @@ function BirthDatePage() {
           type="button"
           className="birth-date__next"
           disabled={!canProceed}
-          onClick={() =>
-            navigate('/saju/birth-time', {
-              state: {
-                birthDate,
-                calendarType,
-                gender,
-                isLeapMonth: isLeapMonth ?? false,
-              },
+          onClick={() => {
+            saveSajuDraft({
+              birthDate,
+              calendarType,
+              gender: gender!,
+              isLeapMonth: isLeapMonth ?? false,
             })
-          }
+            navigate('/saju/birth-time')
+          }}
         >
           다음
         </button>
