@@ -71,6 +71,16 @@ openApi {
 tasks.named('test') {
     useJUnitPlatform()
     systemProperty 'spring.profiles.active', 'test'
+    exclude '**/AuthBrowserIntegrationTest.class'
+}
+
+// Requires the frontend's npm dependencies, Playwright browsers and OpenSSL.
+tasks.register('authBrowserTest', Test) {
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform()
+    systemProperty 'spring.profiles.active', 'test'
+    include '**/AuthBrowserIntegrationTest.class'
 }
 
 tasks.register('format') {

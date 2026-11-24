@@ -23,4 +23,9 @@ public record AuthenticatedMember(Long memberId, String email, String password, 
     public String getPassword() {
         return password;
     }
+
+    @Override
+    public String toString() {
+        return "AuthenticatedMember[redacted]";
+    }
 }

@@ -24,6 +24,8 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import ounlog.auth.config.SecurityConfig;
+import ounlog.auth.service.SessionTxService;
+import ounlog.common.config.TimeConfig;
 import ounlog.saju.controller.SajuController;
 import ounlog.saju.entity.CalendarType;
 import ounlog.saju.entity.Gender;
@@ -38,11 +40,14 @@ import ounlog.saju.service.result.SajuAnalysisResult;
 import ounlog.saju.service.result.SajuPreviewResult;
 
 @WebMvcTest(SajuController.class)
-@Import(SecurityConfig.class)
+@Import({SecurityConfig.class, TimeConfig.class})
 class SajuControllerTest {
 
     @Autowired
     MockMvc mockMvc;
+
+    @MockitoBean
+    SessionTxService sessionTxService;
 
     @MockitoBean
     SajuService sajuService;

@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.Clock;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -23,6 +24,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import ounlog.auth.config.SecurityConfig;
+import ounlog.auth.service.SessionTxService;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 class SecurityConfigTest {
 
@@ -95,6 +99,20 @@ class SecurityConfigTest {
     @Configuration(proxyBeanMethods = false)
     @EnableWebMvc
     static class TestConfig {
+        @Bean
+        Clock clock() {
+            return Clock.systemUTC();
+        }
+
+        @Bean
+        ObjectMapper objectMapper() {
+            return JsonMapper.builder().findAndAddModules().build();
+        }
+
+        @Bean
+        SessionTxService sessionTxService() {
+            return mock(SessionTxService.class);
+        }
 
         @Bean
         JwtDecoder jwtDecoder() {

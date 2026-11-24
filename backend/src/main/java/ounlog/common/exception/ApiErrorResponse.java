@@ -2,6 +2,7 @@ package ounlog.common.exception;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.Instant;
 import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -16,4 +17,9 @@ public record ApiErrorResponse(
         @Schema(description = "오류가 발생한 API 경로", example = "/v1/members/signup")
         String path,
 
-        @Schema(description = "필드 Validation 오류 목록") List<FieldErrorResponse> errors) {}
+        @Schema(description = "필드 Validation 오류 목록") List<FieldErrorResponse> errors,
+        @Schema(description = "UTC 오류 발생 시각") Instant timestamp) {
+    public static ApiErrorResponse of(ErrorCode error, String path, List<FieldErrorResponse> errors, Instant now) {
+        return new ApiErrorResponse(error.getStatus().value(), error.getCode(), error.getMessage(), path, errors, now);
+    }
+}

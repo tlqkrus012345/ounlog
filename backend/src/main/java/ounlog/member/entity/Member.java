@@ -1,6 +1,7 @@
 package ounlog.member.entity;
 
 import jakarta.persistence.*;
+import java.time.Duration;
 import java.time.Instant;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -34,6 +35,30 @@ public class Member {
 
     @Column(nullable = false)
     private Instant updatedAt;
+
+    @Column(nullable = false, columnDefinition = "tinyint unsigned")
+    private byte failedLoginCount;
+
+    private Instant loginLockedUntil;
+
+    public boolean isLoginLocked(Instant now) {
+        if (loginLockedUntil != null && !now.isBefore(loginLockedUntil)) {
+            resetLoginFailures();
+        }
+        return loginLockedUntil != null;
+    }
+
+    public void recordLoginFailure(Instant now) {
+        failedLoginCount++;
+        if (failedLoginCount == 5) {
+            loginLockedUntil = now.plus(Duration.ofMinutes(10));
+        }
+    }
+
+    public void resetLoginFailures() {
+        failedLoginCount = 0;
+        loginLockedUntil = null;
+    }
 
     private Member(String email, String passwordHash, MemberStatus status, Instant time, Role role) {
         this.email = email;
