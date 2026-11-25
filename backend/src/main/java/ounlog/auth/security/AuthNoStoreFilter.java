@@ -11,7 +11,7 @@ public class AuthNoStoreFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-        if (AuthEndpoints.path(request).startsWith("/v1/auth/")) {
+        if (AuthEndpoints.isAuthRequest(request)) {
             response.setHeader("Cache-Control", "no-store");
         }
         chain.doFilter(request, response);
