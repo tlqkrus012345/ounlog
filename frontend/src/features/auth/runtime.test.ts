@@ -1,12 +1,19 @@
+import { waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { http, HttpResponse } from 'msw'
 import { server } from '../../test/server'
 import { authError, tokenResponse } from '../../test/authFixture'
-import { authRuntime, AuthChangedError, createAuthRuntime } from './runtime'
+import {
+  authRuntime,
+  AuthChangedError,
+  createAuthRuntime,
+  LoginInProgressError,
+} from './runtime'
 import { authorizedRequest } from './authorizedRequest'
 import { saveSajuForm, getSajuForm } from '../saju/storage'
 import { createRecovery, findRecovery } from '../saju/recovery'
 import { authApi } from './api'
+import { AUTH_EVENT_KEY, readAuthEvent } from './coordinator'
 
 const command = { email: 'member@example.com', password: 'password123' }
 const form = {
@@ -357,5 +364,244 @@ it('계약과 맞지 않는 만료 오류만으로 업무를 재실행하거나 
     expect(authRuntime.getSnapshot().status).toBe('authenticated')
   } finally {
     refresh.mockRestore()
+  }
+})
+
+it.each(['1', '2'])(
+  '응답 유실 후 다른 탭이 회원 %s로 로그인하면 새 문맥으로 자동 복원한다',
+  async (memberId) => {
+    let freshLogin = false
+    let oldRefreshes = 0
+    let newRefreshes = 0
+    server.use(
+      http.post('/v1/auth/login', () => {
+        freshLogin = true
+        return HttpResponse.json(tokenResponse(memberId, 'new-login'))
+      }),
+      http.post('/v1/auth/refresh', () => {
+        if (!freshLogin) {
+          oldRefreshes++
+          return HttpResponse.error()
+        }
+        newRefreshes++
+        return HttpResponse.json(tokenResponse(memberId, 'restored-new-login'))
+      }),
+    )
+    await authRuntime.restore()
+    await authRuntime.verify()
+    expect(oldRefreshes).toBe(1)
+    const other = createAuthRuntime()
+    try {
+      await other.login(command)
+      const event = readAuthEvent()
+      const duplicate = () =>
+        window.dispatchEvent(
+          new StorageEvent('storage', {
+            key: AUTH_EVENT_KEY,
+            newValue: JSON.stringify(event),
+          }),
+        )
+      duplicate()
+      await waitFor(() =>
+        expect(authRuntime.getSnapshot()).toMatchObject({
+          status: 'authenticated',
+          signInRequired: false,
+          accessToken: 'restored-new-login',
+          session: { memberId },
+        }),
+      )
+      duplicate()
+      await authRuntime.verify()
+      expect({ oldRefreshes, newRefreshes }).toEqual({
+        oldRefreshes: 1,
+        newRefreshes: 1,
+      })
+    } finally {
+      other.dispose()
+    }
+  },
+)
+
+it.each(['success', 'failure'])(
+  '새 로그인 이벤트 뒤 이전 Refresh의 늦은 %s 응답은 새 인증 문맥을 덮지 않는다',
+  async (outcome) => {
+    const release = deferred()
+    const started = deferred()
+    let calls = 0
+    server.use(
+      http.post('/v1/auth/refresh', async () => {
+        calls++
+        if (calls === 1) {
+          started.resolve()
+          await release.promise
+          return outcome === 'success'
+            ? HttpResponse.json(tokenResponse('1', 'stale-token'))
+            : HttpResponse.error()
+        }
+        return HttpResponse.json(tokenResponse('2', 'fresh-token'))
+      }),
+    )
+    const old = authRuntime.refresh().catch((error) => error)
+    await started.promise
+    const { authEvents } = await import('./coordinator')
+    const publisher = authEvents(() => undefined)
+    try {
+      const event = publisher.publish('login', '2')
+      await waitFor(() =>
+        expect(authRuntime.getSnapshot().epoch).toBe(event.id),
+      )
+      release.resolve()
+      expect(await old).toBeInstanceOf(AuthChangedError)
+      await waitFor(() =>
+        expect(authRuntime.getSnapshot()).toMatchObject({
+          status: 'authenticated',
+          epoch: event.id,
+          signInRequired: false,
+          accessToken: 'fresh-token',
+          session: { memberId: '2' },
+        }),
+      )
+      expect(calls).toBe(2)
+      expect(readAuthEvent()?.id).toBe(event.id)
+    } finally {
+      release.resolve()
+      publisher.close()
+    }
+  },
+)
+
+it.each(['success', 'failure'])(
+  '진행 중 로그인은 별도 제출에 기존 %s 결과를 공유하지 않는다',
+  async (outcome) => {
+    const release = deferred()
+    const started = deferred()
+    const submitted: string[] = []
+    server.use(
+      http.post('/v1/auth/login', async ({ request }) => {
+        const body = (await request.json()) as { email: string }
+        submitted.push(body.email)
+        if (submitted.length === 1) {
+          started.resolve()
+          await release.promise
+          return outcome === 'success'
+            ? HttpResponse.json(tokenResponse('1'))
+            : authError('INVALID_CREDENTIALS')
+        }
+        return HttpResponse.json(tokenResponse('2'))
+      }),
+    )
+    const first = authRuntime.login(command).catch((error) => error)
+    await started.promise
+    const second = authRuntime
+      .login({ ...command, email: 'other@example.com' })
+      .catch((error) => error)
+    try {
+      expect(authRuntime.getSnapshot()).toMatchObject({ loginPending: true })
+      expect(await second).toBeInstanceOf(LoginInProgressError)
+      expect(submitted).toEqual(['member@example.com'])
+      release.resolve()
+      await first
+      expect(submitted).toEqual(['member@example.com'])
+      expect(authRuntime.getSnapshot()).toMatchObject({ loginPending: false })
+      if (outcome === 'failure') {
+        expect(
+          (await authRuntime.login({ ...command, email: 'other@example.com' }))
+            .session.memberId,
+        ).toBe('2')
+        expect(submitted).toEqual(['member@example.com', 'other@example.com'])
+      }
+    } finally {
+      release.resolve()
+      await first
+      await second
+    }
+  },
+)
+
+it.each(['logout-start', 'logout-success', 'logout-error'])(
+  '새 로그인 뒤 늦은 %s 이벤트는 현재 개인정보와 인증 상태에 영향을 주지 않는다',
+  async (kind) => {
+    server.use(
+      http.post('/v1/auth/login', () => HttpResponse.json(tokenResponse('2'))),
+    )
+    await authRuntime.login(command)
+    saveSajuForm(form)
+    createRecovery('2', '/saju/confirm', form)
+    const before = authRuntime.getSnapshot()
+    const draft = sessionStorage.getItem('saju-form')
+    const records = Object.keys(localStorage)
+      .filter((key) => key.startsWith('ounlog-recovery:'))
+      .map((key) => [key, localStorage.getItem(key)])
+    window.dispatchEvent(
+      new StorageEvent('storage', {
+        key: AUTH_EVENT_KEY,
+        newValue: JSON.stringify({ id: 'old-logout', kind }),
+      }),
+    )
+    expect(authRuntime.getSnapshot()).toEqual(before)
+    expect(sessionStorage.getItem('saju-form')).toBe(draft)
+    for (const [key, value] of records)
+      expect(localStorage.getItem(key!)).toBe(value)
+  },
+)
+
+it.each(['logout-start', 'logout-success', 'logout-error'] as const)(
+  '최신 %s 이벤트는 즉시 개인정보를 제거하고 중복 전달은 다시 적용하지 않는다',
+  async (kind) => {
+    await signedIn()
+    saveSajuForm(form)
+    createRecovery('1', '/saju/confirm', form)
+    const { authEvents } = await import('./coordinator')
+    const publisher = authEvents(() => undefined)
+    try {
+      const event = publisher.publish(kind)
+      await waitFor(() =>
+        expect(authRuntime.getSnapshot().epoch).toBe(event.id),
+      )
+      expect(getSajuForm()).toBeNull()
+      expect(findRecovery()).toBeNull()
+      const revision = authRuntime.getSnapshot().privacyRevision
+      window.dispatchEvent(
+        new StorageEvent('storage', {
+          key: AUTH_EVENT_KEY,
+          newValue: JSON.stringify(event),
+        }),
+      )
+      expect(authRuntime.getSnapshot().privacyRevision).toBe(revision)
+    } finally {
+      publisher.close()
+    }
+  },
+)
+
+it('로그인 성공 후 CSRF 준비 중 로그아웃하면 이전 제출에 성공 결과를 돌려주지 않는다', async () => {
+  const release = deferred()
+  const started = deferred()
+  let calls = 0
+  server.use(
+    http.get('/v1/auth/csrf', async () => {
+      if (++calls === 2) {
+        started.resolve()
+        await release.promise
+      }
+      return HttpResponse.json({ csrfToken: 'csrf-token' })
+    }),
+    http.post('/v1/auth/login', () => HttpResponse.json(tokenResponse())),
+    http.post('/v1/auth/logout', () => new HttpResponse(null, { status: 204 })),
+  )
+  const result = authRuntime.login(command).catch((error) => error)
+  try {
+    await started.promise
+    const logout = authRuntime.logout()
+    release.resolve()
+    expect(await result).toBeInstanceOf(AuthChangedError)
+    await logout
+    expect(authRuntime.getSnapshot()).toMatchObject({
+      status: 'guest',
+      loginPending: false,
+    })
+  } finally {
+    release.resolve()
+    await result
   }
 })

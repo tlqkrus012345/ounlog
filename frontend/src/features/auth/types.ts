@@ -24,6 +24,7 @@ export interface AuthSnapshot {
   epoch: string
   signInRequired?: boolean
   privacyRevision: number
+  loginPending: boolean
   logoutState: 'idle' | 'pending' | 'error'
 }
 

@@ -51,10 +51,16 @@ export function readDraft() {
     const v = JSON.parse(sessionStorage.getItem(KEY) ?? 'null')
     const input = pickSajuInput(v?.input)
     return input &&
+      (v.workId === undefined ||
+        (typeof v.workId === 'string' && v.workId.length > 0)) &&
       (v.ownerMemberId === null ||
         (typeof v.ownerMemberId === 'string' &&
           /^[1-9][0-9]*$/.test(v.ownerMemberId)))
-      ? { input, ownerMemberId: v.ownerMemberId as string | null }
+      ? {
+          input,
+          ownerMemberId: v.ownerMemberId as string | null,
+          workId: v.workId as string | undefined,
+        }
       : null
   } catch {
     return null
@@ -63,13 +69,30 @@ export function readDraft() {
 export function saveSajuDraft(
   form: Partial<SajuFormState>,
   owner = authRuntime.getSnapshot().session?.memberId ?? null,
-): void {
+  workId?: string,
+): boolean {
   const input = pickSajuInput(form)
-  if (!input) return
+  if (!input) return false
   try {
-    sessionStorage.setItem(KEY, JSON.stringify({ input, ownerMemberId: owner }))
+    const previous = readDraft()
+    const sameWork =
+      previous &&
+      (previous.ownerMemberId === null || previous.ownerMemberId === owner)
+    sessionStorage.setItem(
+      KEY,
+      JSON.stringify({
+        input,
+        ownerMemberId: owner,
+        workId:
+          workId ??
+          (sameWork ? previous.workId : undefined) ??
+          crypto.randomUUID(),
+      }),
+    )
+    return true
   } catch {
-    /* Storage is optional for the public input flow. */
+    // Public input may continue, but recovery must require a successful save.
+    return false
   }
 }
 export function getSajuDraft(): Partial<SajuFormState> | null {

@@ -31,7 +31,8 @@ export function AuthBoundary({ children }: PropsWithChildren) {
     }
   }, [key, hasToken])
   if (auth.logoutState !== 'idle') return null
-  if (auth.status === 'guest') return <Navigate to="/login" replace />
+  if (auth.status === 'guest')
+    return <Navigate to="/login" replace state={{ recoveryId: null }} />
   if (auth.status === 'reauthRequired') return null
   if (auth.status !== 'authenticated' || checked !== key) return <AuthStatus />
   return children

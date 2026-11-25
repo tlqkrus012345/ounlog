@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createRecovery, findRecovery, consumeRecovery } from './recovery'
-import { readDraft } from './storage'
+import { readDraft, saveSajuDraft } from './storage'
 
 const form = {
   birthDate: '1995-03-21',
@@ -16,9 +16,9 @@ describe('account-bound recovery', () => {
     vi.setSystemTime(new Date('2026-11-23T00:00:00Z'))
     const first = createRecovery('1', '/saju/confirm', form)!
     vi.setSystemTime(first.createdAt + 24 * 3600_000 - 1)
-    expect(createRecovery('1', '/saju/confirm', form)?.createdAt).toBe(
-      first.createdAt,
-    )
+    expect(
+      createRecovery('1', '/saju/confirm', form, first.workId)?.createdAt,
+    ).toBe(first.createdAt)
     expect(findRecovery()).not.toBeNull()
     vi.setSystemTime(first.createdAt + 24 * 3600_000)
     expect(findRecovery()).toBeNull()
@@ -73,6 +73,128 @@ describe('account-bound recovery', () => {
     } finally {
       spy.mockRestore()
     }
+  })
+  it('소비 중 초안 저장이 실패하면 원본과 기한을 보존하고 실패를 반환한다', () => {
+    const record = createRecovery('1', '/saju/confirm', form)!
+    const original = localStorage.getItem('ounlog-recovery:' + record.id)
+    const setItem = Storage.prototype.setItem
+    const spy = vi
+      .spyOn(Storage.prototype, 'setItem')
+      .mockImplementation(function (this: Storage, key, value) {
+        if (this === sessionStorage && key === 'saju-form')
+          throw new DOMException('full', 'QuotaExceededError')
+        setItem.call(this, key, value)
+      })
+    try {
+      expect(consumeRecovery('1', record.id)).toBeNull()
+      expect(readDraft()).toBeNull()
+      expect(localStorage.getItem('ounlog-recovery:' + record.id)).toBe(
+        original,
+      )
+      expect(sessionStorage.getItem('ounlog-recovery-current')).toBe(record.id)
+    } finally {
+      spy.mockRestore()
+    }
+    expect(consumeRecovery('1', record.id)?.createdAt).toBe(record.createdAt)
+    expect(readDraft()?.input).toEqual(form)
+  })
+  it.each(['pointer', 'record'])(
+    '소비 중 %s 삭제 실패는 성공으로 처리하지 않는다',
+    (failure) => {
+      const record = createRecovery('1', '/saju/confirm', form)!
+      const removeItem = Storage.prototype.removeItem
+      const spy = vi
+        .spyOn(Storage.prototype, 'removeItem')
+        .mockImplementation(function (this: Storage, key) {
+          if (
+            (failure === 'pointer' && key === 'ounlog-recovery-current') ||
+            (failure === 'record' && key === 'ounlog-recovery:' + record.id)
+          )
+            throw new DOMException('blocked', 'SecurityError')
+          removeItem.call(this, key)
+        })
+      try {
+        expect(consumeRecovery('1', record.id)).toBeNull()
+        expect(readDraft()).toBeNull()
+        expect(
+          localStorage.getItem('ounlog-recovery:' + record.id),
+        ).not.toBeNull()
+      } finally {
+        spy.mockRestore()
+      }
+    },
+  )
+  it('다른 작업의 포인터를 현재 초안의 복구 기록으로 재사용하지 않는다', () => {
+    const other = createRecovery('1', '/saju/confirm', {
+      ...form,
+      birthDate: '2000-01-01',
+    })!
+    saveSajuDraft(form, '1')
+    const current = createRecovery(
+      '1',
+      '/saju/confirm',
+      form,
+      readDraft()?.workId,
+    )!
+    expect(current.id).not.toBe(other.id)
+    expect(current.input).toEqual(form)
+    sessionStorage.setItem('ounlog-recovery-current', other.id)
+    expect(
+      createRecovery('1', '/saju/confirm', form, readDraft()?.workId)?.id,
+    ).toBe(current.id)
+    expect(localStorage.getItem('ounlog-recovery:' + other.id)).not.toBeNull()
+  })
+  it('같은 미소비 작업의 내용·경로 변경과 재시도는 최초 기한을 늘리지 않는다', () => {
+    vi.useFakeTimers()
+    const first = createRecovery('1', '/saju/confirm', form)!
+    vi.setSystemTime(first.createdAt + 3600_000)
+    const next = createRecovery(
+      '1',
+      '/saju/birth-time',
+      { ...form, birthDate: '2000-01-01' },
+      first.workId,
+    )!
+    expect(next).toMatchObject({
+      id: first.id,
+      workId: first.workId,
+      createdAt: first.createdAt,
+    })
+    expect(next.targetPath).toBe('/saju/birth-time')
+    expect(next.input.birthDate).toBe('2000-01-01')
+  })
+  it('현재 작업은 다른 작업의 만료·손상 기록과 분리한다', () => {
+    const other = createRecovery('1', '/saju/confirm', form)!
+    localStorage.setItem(
+      'ounlog-recovery:' + other.id,
+      JSON.stringify({ ...other, createdAt: Date.now() - 24 * 3600_000 }),
+    )
+    const current = createRecovery('1', '/saju/confirm', {
+      ...form,
+      birthDate: '2000-01-01',
+    })!
+    expect(current.input.birthDate).toBe('2000-01-01')
+    expect(localStorage.getItem('ounlog-recovery:' + other.id)).toBeNull()
+  })
+  it('작업 ID 없는 기존 기록도 단일 후보로 복구하고 초안에 식별자를 부여한다', () => {
+    const record = createRecovery('1', '/saju/confirm', form)!
+    const legacy: Partial<typeof record> = { ...record }
+    delete legacy.workId
+    localStorage.setItem('ounlog-recovery:' + record.id, JSON.stringify(legacy))
+    sessionStorage.clear()
+    expect(consumeRecovery('1')?.id).toBe(record.id)
+    expect(readDraft()?.workId).toBe(record.id)
+    expect(readDraft()?.input).toEqual(form)
+  })
+  it('선택한 기록을 소비해도 다른 작업의 기록과 포인터는 유지한다', () => {
+    const selected = createRecovery('1', '/saju/confirm', form)!
+    const other = createRecovery('1', '/saju/confirm', {
+      ...form,
+      birthDate: '2000-01-01',
+    })!
+    expect(consumeRecovery('1', selected.id)?.id).toBe(selected.id)
+    expect(sessionStorage.getItem('ounlog-recovery-current')).toBe(other.id)
+    expect(localStorage.getItem('ounlog-recovery:' + selected.id)).toBeNull()
+    expect(localStorage.getItem('ounlog-recovery:' + other.id)).not.toBeNull()
   })
 })
 

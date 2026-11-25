@@ -10,6 +10,7 @@ import { clearPrivateData } from './privacy'
 import type { AuthSnapshot, LoginRequest, LoginResponse } from './types'
 
 export class AuthChangedError extends Error {}
+export class LoginInProgressError extends Error {}
 
 export function createAuthRuntime() {
   let snapshot: AuthSnapshot = {
@@ -18,6 +19,7 @@ export function createAuthRuntime() {
     session: null,
     epoch: readAuthEvent()?.id ?? 'initial',
     privacyRevision: 0,
+    loginPending: false,
     logoutState: 'idle',
   }
   const listeners = new Set<() => void>()
@@ -73,8 +75,9 @@ export function createAuthRuntime() {
   }
   function applyEvent(event: AuthEvent) {
     if (event.id === snapshot.epoch) return
-    if (event.kind.startsWith('logout')) purge()
     if (event.id !== readAuthEvent()?.id) return
+    if (event.kind.startsWith('logout')) purge()
+    if (event.kind === 'login') refreshUncertain = false
     const switched =
       event.kind === 'login' &&
       snapshot.session &&
@@ -125,6 +128,7 @@ export function createAuthRuntime() {
         accept(response)
         return response
       } catch (error) {
+        current(epoch)
         if (
           !(error instanceof ApiError) &&
           !(error instanceof AuthChangedError)
@@ -162,9 +166,9 @@ export function createAuthRuntime() {
   }
   const login = (command: LoginRequest): Promise<LoginResponse> => {
     connect()
-    if (loginPromise) return loginPromise
+    if (loginPromise) return Promise.reject(new LoginInProgressError())
     const epoch = snapshot.epoch
-    loginPromise = coordinate(async () => {
+    const operation = coordinate(async () => {
       current(epoch)
       const response = await authApi.login(command, await csrf())
       current(epoch)
@@ -173,11 +177,17 @@ export function createAuthRuntime() {
       refreshUncertain = false
       accept(response)
       await csrf().catch(() => undefined)
+      current(event.id)
       return response
     }).finally(() => {
-      loginPromise = null
+      if (loginPromise === operation) {
+        loginPromise = null
+        update({ loginPending: false })
+      }
     })
-    return loginPromise
+    loginPromise = operation
+    update({ loginPending: true })
+    return operation
   }
   const logout = (): Promise<void> => {
     connect()
@@ -282,6 +292,7 @@ export function createAuthRuntime() {
         session: null,
         epoch: readAuthEvent()?.id ?? 'initial',
         privacyRevision: 0,
+        loginPending: false,
         logoutState: 'idle',
       }
     },

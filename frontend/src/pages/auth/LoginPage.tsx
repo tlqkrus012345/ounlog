@@ -12,7 +12,13 @@ function LoginPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const [submitting, setSubmitting] = useState(false)
-  const record = findRecovery()
+  // null explicitly disables recovery; undefined preserves direct-login candidate discovery.
+  const recoveryDisabled = location.state?.recoveryId === null
+  const recoveryId =
+    typeof location.state?.recoveryId === 'string'
+      ? location.state.recoveryId
+      : undefined
+  const record = recoveryDisabled ? null : findRecovery(undefined, recoveryId)
   const manualSignIn =
     auth.signInRequired && location.state?.reason === 'refresh-uncertain'
   useEffect(() => {
@@ -43,7 +49,9 @@ function LoginPage() {
                 setSubmitting(false)
               }}
               onSuccess={(result) => {
-                const recovery = consumeRecovery(result.session.memberId)
+                const recovery = recoveryDisabled
+                  ? null
+                  : consumeRecovery(result.session.memberId, recoveryId)
                 navigate(recovery?.targetPath ?? '/entry', {
                   replace: true,
                   state: { resumed: !!recovery, focusHeading: true },

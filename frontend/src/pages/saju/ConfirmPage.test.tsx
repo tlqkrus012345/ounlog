@@ -10,7 +10,10 @@ import { AuthProvider } from '../../features/auth/AuthProvider'
 import ConfirmPage from './ConfirmPage'
 import SajuPreviewPage from './SajuPreviewPage'
 
-vi.mock('../../features/saju/api')
+vi.mock('../../features/saju/api', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../features/saju/api')>()),
+  createSajuPreview: vi.fn(),
+}))
 
 const FORM_STATE: SajuFormState = {
   birthDate: '1998-08-21',

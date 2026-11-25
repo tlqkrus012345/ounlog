@@ -14,12 +14,13 @@ export function LoginForm({
   onStart?: () => void
   onSettled?: () => void
 }) {
-  const { login } = useAuth()
+  const { login, loginPending } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState<LoginErrors>({})
   const [message, setMessage] = useState('')
   const [pending, setPending] = useState(false)
+  const submitting = pending || loginPending
   const busy = useRef(false)
   const mounted = useRef(true)
   const emailRef = useRef<HTMLInputElement>(null)
@@ -38,7 +39,7 @@ export function LoginForm({
   }, [errors, message])
   async function submit(event: FormEvent) {
     event.preventDefault()
-    if (busy.current) return
+    if (busy.current || loginPending) return
     const command = { email: email.trim(), password }
     setEmail(command.email)
     const next = validateLogin(command)
@@ -83,7 +84,7 @@ export function LoginForm({
       className="login-form"
       onSubmit={submit}
       noValidate
-      aria-busy={pending}
+      aria-busy={submitting}
     >
       <div className="login-field">
         <label htmlFor="login-email">이메일</label>
@@ -97,7 +98,7 @@ export function LoginForm({
           autoCapitalize="none"
           spellCheck={false}
           value={email}
-          readOnly={pending}
+          readOnly={submitting}
           onChange={(e) => edit('email', e.target.value)}
           aria-invalid={!!errors.email}
           aria-describedby={errors.email ? 'login-email-error' : undefined}
@@ -117,7 +118,7 @@ export function LoginForm({
           type="password"
           autoComplete="current-password"
           value={password}
-          readOnly={pending}
+          readOnly={submitting}
           onChange={(e) => edit('password', e.target.value)}
           aria-invalid={!!errors.password}
           aria-describedby={
@@ -135,8 +136,8 @@ export function LoginForm({
           {message}
         </p>
       )}
-      <button className="auth-primary" type="submit" disabled={pending}>
-        {pending ? '로그인 중...' : '로그인'}
+      <button className="auth-primary" type="submit" disabled={submitting}>
+        {submitting ? '로그인 중...' : '로그인'}
       </button>
     </form>
   )

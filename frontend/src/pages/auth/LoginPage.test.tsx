@@ -4,6 +4,7 @@ import { http, HttpResponse } from 'msw'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import LoginPage from './LoginPage'
+import SajuPreviewPage from '../saju/SajuPreviewPage'
 import { AuthProvider } from '../../features/auth/AuthProvider'
 import { authCopy } from '../../features/auth/copy'
 import { server } from '../../test/server'
@@ -23,6 +24,7 @@ function show() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/entry" element={<h1>서비스 선택</h1>} />
           <Route path="/saju/confirm" element={<DraftDestination />} />
+          <Route path="/saju/preview" element={<SajuPreviewPage />} />
         </Routes>
       </MemoryRouter>
     </AuthProvider>,
@@ -157,4 +159,33 @@ it('재발급 응답 유실 후 만료를 단정하지 않고 사용자가 직�
   const user = await fill()
   await user.click(screen.getByRole('button', { name: '로그인' }))
   expect(await screen.findByText('서비스 선택')).toBeInTheDocument()
+})
+
+it('미리보기 복귀 기록만 있으면 같은 계정 재로그인 후 선택 화면으로 이동하고 분석을 요청하지 않는다', async () => {
+  createRecovery('1', '/saju/preview', {
+    birthDate: '1995-03-21',
+    birthTime: '14:30',
+    calendarType: 'SOLAR',
+    gender: 'MALE',
+    isLeapMonth: false,
+  })
+  let analyses = 0
+  let previews = 0
+  server.use(
+    http.post('/v1/auth/login', () => HttpResponse.json(tokenResponse())),
+    http.post('/v1/saju/analysis', () => {
+      analyses++
+      return HttpResponse.json({})
+    }),
+    http.post('/v1/saju/previews', () => {
+      previews++
+      return HttpResponse.json({})
+    }),
+  )
+  show()
+  const user = await fill()
+  await user.click(screen.getByRole('button', { name: '로그인' }))
+  expect(await screen.findByText('서비스 선택')).toBeInTheDocument()
+  expect(findRecovery()).toBeNull()
+  expect({ analyses, previews }).toEqual({ analyses: 0, previews: 0 })
 })

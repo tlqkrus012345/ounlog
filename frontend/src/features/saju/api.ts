@@ -14,13 +14,17 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
 
-function isSajuPreviewResponse(value: unknown): value is SajuPreviewResponse {
+export function isSajuPreviewResponse(
+  value: unknown,
+): value is SajuPreviewResponse {
   return (
     isRecord(value) &&
     typeof value.year === 'number' &&
     Number.isInteger(value.year) &&
     typeof value.keyword === 'string' &&
-    typeof value.summary === 'string'
+    value.keyword.trim().length > 0 &&
+    typeof value.summary === 'string' &&
+    value.summary.trim().length > 0
   )
 }
 

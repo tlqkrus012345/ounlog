@@ -47,6 +47,7 @@ function reset() {
   failLogout = false
   stats = {
     refreshes: 0,
+    refreshSessionIds: [],
     maxRefreshes: 0,
     reuse: 0,
     analyses: 0,
@@ -190,6 +191,7 @@ const fixture = {
       if (path === '/v1/auth/refresh') {
         stats.refreshes++
         const s = refreshTokens.get(refresh)
+        stats.refreshSessionIds.push(s?.id ?? null)
         if (!refresh) return error('AUTHENTICATION_REQUIRED')
         if (!s || s.revoked) return error('SESSION_INVALID')
         if (s.expired) return error('SESSION_EXPIRED')

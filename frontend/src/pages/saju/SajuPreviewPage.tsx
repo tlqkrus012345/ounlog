@@ -1,18 +1,27 @@
-import { useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { useAuth } from '../../features/auth/useAuth'
-import { createSajuAnalysis } from '../../features/saju/api'
+import {
+  createSajuAnalysis,
+  isSajuPreviewResponse,
+} from '../../features/saju/api'
 import { getSajuForm } from '../../features/saju/storage'
 import { toSajuAnalysisRequest } from '../../features/saju/mapper'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
-import type { SajuPreviewResponse } from '../../features/saju/types'
 import './SajuPreviewPage.css'
 
-function SajuPreviewPage() {
+function SajuPreviewContent() {
   const location = useLocation()
   const navigate = useNavigate()
   const auth = useAuth()
   const [pending, setPending] = useState(false)
   const [error, setError] = useState(false)
+  const requestId = useRef(0)
+  useLayoutEffect(
+    () => () => {
+      requestId.current++
+    },
+    [],
+  )
   async function showFull() {
     if (pending) return
     if (auth.status !== 'authenticated') {
@@ -26,19 +35,21 @@ function SajuPreviewPage() {
     }
     setPending(true)
     setError(false)
+    const id = ++requestId.current
     try {
       await createSajuAnalysis(toSajuAnalysisRequest(input))
+      if (requestId.current !== id) return
       navigate('/saju/analysis')
     } catch {
-      setError(true)
+      if (requestId.current === id) setError(true)
     } finally {
-      setPending(false)
+      if (requestId.current === id) setPending(false)
     }
   }
 
-  const result = location.state as SajuPreviewResponse | null
+  const result: unknown = location.state
 
-  if (!result) {
+  if (!isSajuPreviewResponse(result)) {
     return (
       <Navigate to={location.state?.resumed ? '/entry' : '/saju'} replace />
     )
@@ -79,6 +90,12 @@ function SajuPreviewPage() {
       </section>
     </main>
   )
+}
+
+function SajuPreviewPage() {
+  const location = useLocation()
+  // A new history entry gets independent UI state and request ownership.
+  return <SajuPreviewContent key={location.key} />
 }
 
 export default SajuPreviewPage
